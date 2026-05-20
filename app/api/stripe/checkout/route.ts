@@ -54,7 +54,16 @@ export async function POST(req: NextRequest) {
     const clientName = `${intake.first_name} ${intake.last_name}`.trim();
     const businessName = (intake.business_name as string) || clientName;
 
-    // Build itemized line items from intake data
+    // Fetch linked project for full deliverables breakdown
+    const { data: project } = intake.project_id
+      ? await supabase.from("projects").select("deliverables, name, notes").eq("id", intake.project_id).single()
+      : { data: null };
+
+    const projectDeliverables: string[] = project
+      ? (project.deliverables as { text: string }[]).map((d) => d.text)
+      : [];
+
+    // Build priced line items
     const basePrice = BASE_PRICES[pkg] ?? (intake.package_price as number);
     const pages = (intake.pages as string[]) ?? [];
     const integrations = (intake.integrations as string[]) ?? [];
@@ -73,46 +82,64 @@ export async function POST(req: NextRequest) {
 
     for (const integration of integrations) {
       const price = INTEGRATION_PRICES[integration];
-      if (price) lineItems.push({ description: integration, amount: price });
+      if (price) lineItems.push({ description: `Integration: ${integration}`, amount: price });
     }
 
     const subtotal = lineItems.reduce((s, i) => s + i.amount, 0);
 
+    // Build deliverables description block from project
+    const scopeBlock = projectDeliverables.length > 0
+      ? `\n\nProject Scope:\n${projectDeliverables.map((d) => `• ${d}`).join("\n")}`
+      : "";
+
     // Find or create Stripe customer
-    const existing = await stripe.customers.list({ email: intake.email as string, limit: 1 });
-    const customer = existing.data[0] ?? await stripe.customers.create({
+    const existing2 = await stripe.customers.list({ email: intake.email as string, limit: 1 });
+    const customer2 = existing2.data[0] ?? await stripe.customers.create({
       email: intake.email as string,
       name: clientName,
       metadata: { intake_id: intakeId, business: businessName },
     });
+    // Use customer2 going forward
+    const cust = customer2;
 
     if (paymentType === "deposit") {
-      // 50% deposit — single line item showing it's a deposit
       const depositAmount = Math.round(subtotal * 0.5);
+
+      // Main deposit line item
       await stripe.invoiceItems.create({
-        customer: customer.id,
+        customer: cust.id,
         amount: depositAmount * 100,
         currency: "usd",
         description: `50% Project Deposit — ${businessName}`,
       });
 
-      // Add a memo of what's included
+      // Priced breakdown as $0 memo lines
       for (const item of lineItems) {
         await stripe.invoiceItems.create({
-          customer: customer.id,
+          customer: cust.id,
           amount: 0,
           currency: "usd",
           description: `  ↳ ${item.description} ($${item.amount.toLocaleString()})`,
         });
       }
 
+      // Deliverables as $0 scope lines
+      for (const d of projectDeliverables) {
+        await stripe.invoiceItems.create({
+          customer: cust.id,
+          amount: 0,
+          currency: "usd",
+          description: `  ✦ ${d}`,
+        });
+      }
+
       const invoice = await stripe.invoices.create({
-        customer: customer.id,
+        customer: cust.id,
         collection_method: "send_invoice",
         days_until_due: 7,
-        description: `50% deposit to begin your project. Remaining balance of $${depositAmount.toLocaleString()} due at delivery.`,
-        footer: "Wood Fired Designs · Undrafted Designs LLC · michael@woodfireddesigns.com",
-        metadata: { intake_id: intakeId, payment_type: "deposit" },
+        description: `50% deposit to begin your project. Remaining $${depositAmount.toLocaleString()} due at delivery.${scopeBlock}`,
+        footer: "Wood Fired Designs · Undrafted Designs LLC · michael@woodfireddesigns.com · woodfireddesigns.com",
+        metadata: { intake_id: intakeId, payment_type: "deposit", project_id: intake.project_id as string ?? "" },
       });
 
       const finalized = await stripe.invoices.finalizeInvoice(invoice.id);
@@ -120,31 +147,41 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ url: finalized.hosted_invoice_url });
 
     } else {
-      // Full payment with 5% discount — fully itemized
+      // Full payment — every line item priced individually
       for (const item of lineItems) {
         await stripe.invoiceItems.create({
-          customer: customer.id,
+          customer: cust.id,
           amount: item.amount * 100,
           currency: "usd",
           description: item.description,
         });
       }
 
-      // 5% discount
+      // Deliverables as $0 scope lines
+      for (const d of projectDeliverables) {
+        await stripe.invoiceItems.create({
+          customer: cust.id,
+          amount: 0,
+          currency: "usd",
+          description: `  ✦ ${d}`,
+        });
+      }
+
+      // 5% discount coupon
       const discount = await stripe.coupons.create({
         percent_off: 5,
         duration: "once",
-        name: "Full Payment Discount",
+        name: "Full Payment — 5% Discount",
       });
 
       const invoice = await stripe.invoices.create({
-        customer: customer.id,
+        customer: cust.id,
         collection_method: "send_invoice",
         days_until_due: 7,
         discounts: [{ coupon: discount.id }],
-        description: `Full project payment for ${businessName}. 5% discount applied for paying in full.`,
-        footer: "Wood Fired Designs · Undrafted Designs LLC · michael@woodfireddesigns.com",
-        metadata: { intake_id: intakeId, payment_type: "full" },
+        description: `Full project payment — ${businessName}. 5% discount applied for paying in full.${scopeBlock}`,
+        footer: "Wood Fired Designs · Undrafted Designs LLC · michael@woodfireddesigns.com · woodfireddesigns.com",
+        metadata: { intake_id: intakeId, payment_type: "full", project_id: intake.project_id as string ?? "" },
       });
 
       const finalized = await stripe.invoices.finalizeInvoice(invoice.id);
