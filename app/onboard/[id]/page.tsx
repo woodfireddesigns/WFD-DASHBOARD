@@ -22,7 +22,7 @@ const CSS = `
   input[type=text]{width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-family:var(--font-b);font-size:14px;padding:11px 14px;outline:none;transition:border-color 0.2s;}
   input[type=text]:focus{border-color:var(--accent);}
   input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;}
-  .sign-btn{display:block;width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:var(--font-d);font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.2s;}
+  .sign-btn{display:block;width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:var(--font-b);font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.2s;}
   .sign-btn:disabled{opacity:0.35;cursor:not-allowed;}
   @media print{.no-print{display:none!important}body{background:#fff!important;color:#111!important}}
 `;

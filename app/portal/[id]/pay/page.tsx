@@ -21,7 +21,7 @@ const CSS = `
   body{background:var(--bg);color:var(--text-primary);font-family:var(--font-b);}
   .pay-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:12px;padding:28px;transition:border-color 0.2s;}
   .pay-card.recommended{border-color:var(--savings);}
-  .pay-btn{display:block;width:100%;padding:14px;border:none;border-radius:8px;font-family:var(--font-d);font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.2s;text-align:center;}
+  .pay-btn{display:block;width:100%;padding:14px;border:none;border-radius:8px;font-family:var(--font-b);font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.2s;text-align:center;}
   .pay-btn:hover:not(:disabled){opacity:0.88;}
   .pay-btn:disabled{opacity:0.4;cursor:not-allowed;}
 `;

@@ -631,7 +631,7 @@ export default function OnboardPage() {
           <button
             onClick={submit}
             disabled={submitting}
-            style={{ display: "block", width: "100%", padding: "15px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: 8, fontFamily: "var(--font-d)", fontSize: 15, fontWeight: 600, cursor: submitting ? "not-allowed" : "pointer", opacity: submitting ? 0.5 : 1, marginBottom: 10 }}
+            style={{ display: "block", width: "100%", padding: "15px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: 8, fontFamily: "var(--font-b)", fontSize: 15, fontWeight: 600, cursor: submitting ? "not-allowed" : "pointer", opacity: submitting ? 0.5 : 1, marginBottom: 10 }}
           >
             {submitting ? "Saving your project…" : "Generate My Contract →"}
           </button>

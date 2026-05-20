@@ -19,7 +19,7 @@ const CSS = `
     --savings:#4ADE80;--font-d:'Anton',sans-serif;--font-b:'DM Sans',sans-serif;
   }
   body{background:var(--bg);color:var(--text-primary);font-family:var(--font-b);}
-  .pay-btn{display:block;width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:var(--font-d);font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;text-align:center;transition:opacity 0.2s;}
+  .pay-btn{display:block;width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:var(--font-b);font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;text-align:center;transition:opacity 0.2s;}
   .pay-btn:hover{opacity:0.88;}
 `;
 
