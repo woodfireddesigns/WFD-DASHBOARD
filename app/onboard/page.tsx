@@ -107,6 +107,7 @@ const BASE_PRICES: Record<string, number> = {
   starter_site: 1200,
   full_website: 2400,
   brand_and_site: 4200,
+  test_package: 19,
 };
 
 function calcTotal(answers: Answers): { base: number; extraPages: number; integrationItems: {label: string; price: number}[]; total: number } {
