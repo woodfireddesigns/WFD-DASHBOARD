@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
 
-    if (intakeErr) throw intakeErr;
+    if (intakeErr) throw new Error(intakeErr.message ?? JSON.stringify(intakeErr));
 
     // 2. Upsert client
     const { data: client } = await supabase
