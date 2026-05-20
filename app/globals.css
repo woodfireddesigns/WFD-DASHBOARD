@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme inline {
+  /* Brand */
+  --color-brand:        #FF6B2B;
+  --color-brand-dim:    #E85A1A;
+  --color-charcoal:     #1E1C1A;
+  --color-charcoal-2:   #2C2A28;
+  --color-charcoal-3:   #3D342A;
+  --color-cream:        #F5F0E8;
+  --color-cream-2:      #EDE7DB;
+  --color-cream-3:      #D9D1C3;
+
+  /* Text */
+  --color-text-primary:   #1E1C1A;
+  --color-text-secondary: #6B6560;
+  --color-text-muted:     #A09890;
+  --color-text-disabled:  #C8C0B8;
+
+  /* Semantic */
+  --color-success:  #1E7A3C;
+  --color-warning:  #B86B10;
+  --color-error:    #B83232;
+  --color-info:     #1E5FAA;
+
+  /* Surface */
+  --color-bg:          #F0EBE1;
+  --color-surface:     #FFFFFF;
+  --color-surface-sub: #F8F5F0;
+  --color-border:      #E8E2D8;
+  --color-border-2:    #D9D1C3;
+
+  /* Sidebar */
+  --color-sidebar-bg:     #1E1C1A;
+  --color-sidebar-hover:  #2C2A28;
+  --color-sidebar-active: #2C2A28;
+
+  /* Fonts */
+  --font-display: 'Anton', Impact, sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { height: 100%; }
+
+body {
+  height: 100%;
+  background-color: #F0EBE1;
+  color: #1E1C1A;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Anton — always uppercase everywhere */
+.font-display,
+h1, h2, h3 {
+  font-family: 'Anton', Impact, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  line-height: 1.05;
+}
+
+/* Mono utility */
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D9D1C3; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #A09890; }
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid #FF6B2B;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
