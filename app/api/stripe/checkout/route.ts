@@ -9,14 +9,22 @@ const supabase = createClient(
 );
 
 export async function POST(req: NextRequest) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: "Stripe secret key not configured on server." }, { status: 500 });
+  }
+
   try {
     const { intakeId, paymentType } = await req.json();
 
-    const { data: intake } = await supabase
+    const { data: intake, error: dbErr } = await supabase
       .from("intake_forms")
       .select("*")
       .eq("id", intakeId)
       .single();
+
+    if (dbErr || !intake) {
+      return NextResponse.json({ error: `Intake form not found: ${dbErr?.message}` }, { status: 404 });
+    }
 
     if (!intake) return NextResponse.json({ error: "Not found" }, { status: 404 });
 

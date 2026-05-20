@@ -37,6 +37,7 @@ export default function PayPage() {
   const [intake, setIntake] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<"deposit" | "full" | null>(null);
+  const [stripeError, setStripeError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!document.getElementById("pay-css")) {
@@ -54,17 +55,20 @@ export default function PayPage() {
   async function checkout(paymentType: "deposit" | "full") {
     if (!intake) return;
     setProcessing(paymentType);
+    setStripeError(null);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intakeId: intake.id, paymentType }),
       });
-      const { url, error } = await res.json();
-      if (error) throw new Error(error);
-      window.location.href = url;
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error ?? `Server error ${res.status}`);
+      if (!data.url) throw new Error("No checkout URL returned from Stripe.");
+      window.location.href = data.url;
     } catch (err) {
-      console.error(err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setStripeError(msg);
       setProcessing(null);
     }
   }
@@ -150,6 +154,14 @@ export default function PayPage() {
             </button>
           </div>
         </div>
+
+        {/* Stripe error */}
+        {stripeError && (
+          <div style={{ background: "rgba(184,50,50,0.12)", border: "1px solid #B83232", borderRadius: 8, padding: "14px 18px", marginBottom: 24 }}>
+            <p style={{ fontSize: 13, color: "#E87070", fontWeight: 500, marginBottom: 4 }}>Payment setup failed</p>
+            <p style={{ fontSize: 12.5, color: "#C87070", lineHeight: 1.6 }}>{stripeError}</p>
+          </div>
+        )}
 
         {/* Trust signals */}
         <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap" }}>
