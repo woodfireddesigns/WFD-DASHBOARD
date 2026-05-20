@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export async function POST(req: NextRequest) {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return NextResponse.json({ error: "Stripe secret key not configured on server." }, { status: 500 });
-  }
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) return NextResponse.json({ error: "STRIPE_SECRET_KEY not set" }, { status: 500 });
+
+  const stripe = new Stripe(key);
 
   try {
     const { intakeId, paymentType } = await req.json();
@@ -23,66 +23,68 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (dbErr || !intake) {
-      return NextResponse.json({ error: `Intake form not found: ${dbErr?.message}` }, { status: 404 });
+      return NextResponse.json({ error: "Intake form not found" }, { status: 404 });
     }
 
-    if (!intake) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
     const total = intake.package_price as number;
-    const clientName = `${intake.first_name} ${intake.last_name}`;
-    const packageLabels: Record<string, string> = {
+    const clientName = `${intake.first_name} ${intake.last_name}`.trim();
+
+    const PACKAGE_LABELS: Record<string, string> = {
       starter_site: "Starter Site",
       full_website: "Full Website",
       brand_and_site: "Brand + Site",
     };
-    const packageLabel = packageLabels[intake.package] ?? intake.package;
+    const packageLabel = PACKAGE_LABELS[intake.package as string] ?? "Website Project";
 
-    let amount: number;
+    let amountCents: number;
     let description: string;
 
     if (paymentType === "deposit") {
-      amount = Math.round(total * 0.5 * 100); // 50% in cents
-      description = `${packageLabel} — 50% Deposit`;
+      amountCents = Math.round(total * 0.5) * 100;
+      description = `${packageLabel} — 50% Deposit (${intake.business_name || clientName})`;
     } else {
-      amount = Math.round(total * 0.95 * 100); // 5% discount in cents
-      description = `${packageLabel} — Full Payment (5% discount applied)`;
+      amountCents = Math.round(total * 0.95) * 100;
+      description = `${packageLabel} — Full Payment, 5% discount applied (${intake.business_name || clientName})`;
     }
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      customer_email: intake.email,
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            unit_amount: amount,
-            product_data: {
-              name: description,
-              description: `Wood Fired Designs · ${clientName}${intake.business_name ? ` · ${intake.business_name}` : ""}`,
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        intake_id: intakeId,
-        payment_type: paymentType,
-        portal_token: intake.portal_token,
-      },
-      success_url: `${req.nextUrl.origin}/portal/${intake.portal_token}?paid=1`,
-      cancel_url: `${req.nextUrl.origin}/portal/${intake.portal_token}/pay`,
+    // Find or create Stripe customer
+    const existing = await stripe.customers.list({ email: intake.email as string, limit: 1 });
+    const customer = existing.data[0] ?? await stripe.customers.create({
+      email: intake.email as string,
+      name: clientName,
+      metadata: { intake_id: intakeId },
     });
 
-    // Store session ID
+    // Create invoice item
+    await stripe.invoiceItems.create({
+      customer: customer.id,
+      amount: amountCents,
+      currency: "usd",
+      description,
+    });
+
+    // Create invoice
+    const invoice = await stripe.invoices.create({
+      customer: customer.id,
+      collection_method: "send_invoice",
+      days_until_due: 7,
+      metadata: { intake_id: intakeId, payment_type: paymentType },
+      footer: "Wood Fired Designs — Undrafted Designs LLC",
+    });
+
+    // Finalize so hosted URL is available
+    const finalized = await stripe.invoices.finalizeInvoice(invoice.id);
+
+    // Save session ref
     await supabase
       .from("intake_forms")
-      .update({ stripe_session_id: session.id })
+      .update({ stripe_session_id: finalized.id })
       .eq("id", intakeId);
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: finalized.hosted_invoice_url });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("Stripe error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
