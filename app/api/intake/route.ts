@@ -10,6 +10,7 @@ const PACKAGE_PRICES: Record<string, number> = {
   starter_site: 1200,
   full_website: 2400,
   brand_and_site: 4200,
+  test_package: 19,
 };
 const INTEGRATION_PRICES: Record<string, number> = {
   "Online booking system": 400,

@@ -75,6 +75,14 @@ const PACKAGES = [
     badge: "Best Value",
     includes: ["Everything in Full Website", "Logo & brand identity", "Color & typography system", "Brand guidelines doc", "Vehicle wrap / signage files"],
   },
+  {
+    value: "test_package",
+    label: "Test Package",
+    subtext: "Internal test only — do not select.",
+    turnaround: "Instant",
+    badge: "TEST",
+    includes: ["Stripe payment test"],
+  },
 ];
 
 const PAGES_OPTIONS = ["Home", "About", "Services", "Portfolio / Work", "Contact", "Blog", "FAQ", "Booking / Scheduling", "Team", "Testimonials"];
