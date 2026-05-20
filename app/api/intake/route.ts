@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
           phone: body.phone || null,
           city: body.city || null,
           state: body.state || null,
-          source: body.referral_source || "onboarding",
+          source: "other",
           is_active: true,
           mrr_status: "none",
           mrr_amount: 0,
