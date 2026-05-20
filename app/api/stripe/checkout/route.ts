@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
     const integrations = (intake.integrations as string[]) ?? [];
     const extraPageCount = Math.max(0, pages.length - INCLUDED_PAGES);
 
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const lineItems: any[] = [];
 
     // Base package
     lineItems.push({
@@ -104,9 +105,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const subtotal = lineItems.reduce((s, item) => {
-      const pd = item.price_data as Stripe.Checkout.SessionCreateParams.LineItem.PriceData;
-      return s + ((pd.unit_amount as number) * (item.quantity as number));
+    const subtotal = lineItems.reduce((s: number, item: any) => {
+      return s + ((item.price_data.unit_amount as number) * (item.quantity as number));
     }, 0) / 100;
 
     if (subtotal === 0) {
