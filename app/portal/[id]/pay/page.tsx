@@ -65,7 +65,7 @@ export default function PayPage() {
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error ?? `Server error ${res.status}`);
       if (!data.url) throw new Error("No checkout URL returned from Stripe.");
-      window.location.href = data.url;
+      window.open(data.url, "_blank");
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setStripeError(msg);
