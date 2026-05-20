@@ -137,6 +137,13 @@ export async function POST(req: NextRequest) {
       });
 
       const finalized = await stripe.invoices.finalizeInvoice(invoice.id);
+
+      // Safety: never let a $0 invoice through
+      if ((finalized.amount_due ?? 0) === 0) {
+        await stripe.invoices.voidInvoice(finalized.id);
+        return NextResponse.json({ error: `Invoice amount calculated as $0. subtotal=${subtotal}, deposit=${depositAmount}. Contact michael@woodfireddesigns.com.` }, { status: 400 });
+      }
+
       await supabase.from("intake_forms").update({ stripe_session_id: finalized.id }).eq("id", intakeId);
       return NextResponse.json({ url: finalized.hosted_invoice_url });
 
@@ -169,6 +176,12 @@ export async function POST(req: NextRequest) {
       });
 
       const finalized = await stripe.invoices.finalizeInvoice(invoice.id);
+
+      if ((finalized.amount_due ?? 0) === 0) {
+        await stripe.invoices.voidInvoice(finalized.id);
+        return NextResponse.json({ error: `Invoice amount calculated as $0. subtotal=${subtotal}. Contact michael@woodfireddesigns.com.` }, { status: 400 });
+      }
+
       await supabase.from("intake_forms").update({ stripe_session_id: finalized.id }).eq("id", intakeId);
       return NextResponse.json({ url: finalized.hosted_invoice_url });
     }
