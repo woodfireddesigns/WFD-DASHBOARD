@@ -642,10 +642,13 @@ export default function OnboardPage() {
 
     try {
       const res = await fetch("/api/intake", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      const { portalToken } = await res.json();
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error ?? "Submission failed");
+      if (!data.portalToken) throw new Error("No portal token returned");
       clearSaved();
-      window.location.href = `/onboard/${portalToken}`;
-    } catch {
+      window.location.href = `/onboard/${data.portalToken}`;
+    } catch (err) {
+      alert("Submission error: " + (err instanceof Error ? err.message : String(err)));
       setSubmitting(false);
     }
   }

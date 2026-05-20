@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
       starter_site: "Starter Site",
       full_website: "Full Website",
       brand_and_site: "Brand + Site",
+      test_package: "Test Package",
     };
 
     const { data: project } = await supabase
