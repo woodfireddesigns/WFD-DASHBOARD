@@ -26,14 +26,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Intake form not found" }, { status: 404 });
     }
 
-    const total = intake.package_price as number;
-    const clientName = `${intake.first_name} ${intake.last_name}`.trim();
+    const BASE_PRICES: Record<string, number> = {
+      starter_site: 1200,
+      full_website: 2400,
+      brand_and_site: 4200,
+    };
 
     const PACKAGE_LABELS: Record<string, string> = {
       starter_site: "Starter Site",
       full_website: "Full Website",
       brand_and_site: "Brand + Site",
     };
+
+    const storedPrice = intake.package_price as number;
+    const fallback = BASE_PRICES[intake.package as string] ?? 0;
+    const total = storedPrice > 0 ? storedPrice : fallback;
+
+    if (total === 0) {
+      return NextResponse.json({ error: "Could not determine project price. Please contact michael@woodfireddesigns.com." }, { status: 400 });
+    }
+
+    const clientName = `${intake.first_name} ${intake.last_name}`.trim();
     const packageLabel = PACKAGE_LABELS[intake.package as string] ?? "Website Project";
 
     let amountCents: number;
