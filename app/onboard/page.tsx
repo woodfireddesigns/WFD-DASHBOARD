@@ -646,7 +646,11 @@ export default function OnboardPage() {
       if (!res.ok || data.error) throw new Error(data.error ?? "Submission failed");
       if (!data.portalToken) throw new Error("No portal token returned");
       clearSaved();
-      window.location.href = `/onboard/${data.portalToken}`;
+      // Test package skips contract — go straight to portal
+      const dest = payload.package === "test_package"
+        ? `/portal/${data.portalToken}`
+        : `/onboard/${data.portalToken}`;
+      window.location.href = dest;
     } catch (err) {
       alert("Submission error: " + (err instanceof Error ? err.message : String(err)));
       setSubmitting(false);

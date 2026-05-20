@@ -39,10 +39,17 @@ export async function POST(req: NextRequest) {
     const packagePrice = base + extraPages + integrationTotal;
     const clientName = `${body.first_name} ${body.last_name}`.trim();
 
-    // 1. Save intake form
+    // 1. Save intake form (auto-sign test_package)
+    const autoSign = pkg === "test_package";
     const { data: intake, error: intakeErr } = await supabase
       .from("intake_forms")
-      .insert({ ...body, package_price: packagePrice })
+      .insert({
+        ...body,
+        package_price: packagePrice,
+        status: autoSign ? "signed" : "submitted",
+        signed_name: autoSign ? clientName : null,
+        signed_at: autoSign ? new Date().toISOString() : null,
+      })
       .select()
       .single();
 
