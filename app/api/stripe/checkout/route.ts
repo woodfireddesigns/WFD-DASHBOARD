@@ -130,6 +130,7 @@ export async function POST(req: NextRequest) {
       const invoice = await stripe.invoices.create({
         customer: customer.id,
         collection_method: "send_invoice",
+        auto_advance: false,
         days_until_due: 7,
         description: `Project deposit for ${businessName}. Remaining balance of $${depositAmount.toLocaleString()} due upon project delivery.${scopeLines}`,
         footer: "Wood Fired Designs · Undrafted Designs LLC · michael@woodfireddesigns.com · woodfireddesigns.com",
