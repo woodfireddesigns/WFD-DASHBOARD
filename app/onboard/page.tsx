@@ -347,14 +347,12 @@ const QUESTIONS: Question[] = [
     type: "textarea",
     question: "Who is your ideal customer?",
     subtext: "Describe them in as much detail as you can. Age, location, what they care about, what problem they have that you solve.",
-    required: true,
   },
   {
     id: "differentiator",
     type: "textarea",
     question: "What makes you different from your competitors?",
     subtext: "Be honest and specific. This becomes the backbone of your copy.",
-    required: true,
   },
   {
     id: "competitor_refs",
@@ -427,7 +425,6 @@ const QUESTIONS: Question[] = [
     type: "textarea",
     question: "Describe your brand in 3–5 words.",
     subtext: "Think about how you want clients to feel when they land on your site. Examples: bold, trustworthy, fun, premium, no-nonsense.",
-    required: true,
   },
   {
     id: "color_prefs",

@@ -73,6 +73,10 @@ const PACKAGE_DELIVERABLES: Record<string, string[]> = {
     "Google Analytics 4 + Search Console setup",
     "Full ownership — all source files, brand assets, code",
   ],
+  test_package: [
+    "Internal Stripe payment test — $19",
+    "No deliverables — test only",
+  ],
 };
 
 type IntakeRow = Record<string, unknown>;
