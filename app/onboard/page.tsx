@@ -417,7 +417,7 @@ const QUESTIONS: Question[] = [
 function canAdvanceQ(q: Question, answers: Answers): boolean {
   if (q.type === "info") return true;
   if (q.type === "text_fields") {
-    const vals = (answers[q.id] as Record<string, string>) ?? {};
+    const vals = (answers[q.id] as unknown as Record<string, string>) ?? {};
     return (q.fields ?? []).filter((f) => f.required).every((f) => vals[f.key]?.trim());
   }
   if (q.type === "package_select") return !!answers.package;
@@ -481,8 +481,8 @@ export default function OnboardPage() {
 
   function setField(qId: string, key: string, val: string) {
     setAnswers((prev) => {
-      const existing = (prev[qId] as Record<string, string>) ?? {};
-      return { ...prev, [qId]: { ...existing, [key]: val } };
+      const existing = (prev[qId] as unknown as Record<string, string>) ?? {};
+      return { ...prev, [qId]: { ...existing, [key]: val } } as Answers;
     });
   }
 
@@ -513,7 +513,7 @@ export default function OnboardPage() {
 
   async function submit() {
     setSubmitting(true);
-    const contact = (answers.contact as Record<string, string>) ?? {};
+    const contact = (answers.contact as unknown as Record<string, string>) ?? {};
     const payload = {
       first_name: contact.first_name ?? "",
       last_name: contact.last_name ?? "",
@@ -560,7 +560,7 @@ export default function OnboardPage() {
 
   // Resume prompt
   if (resumePrompt && savedData) {
-    const savedContact = (savedData.answers.contact as Record<string, string>) ?? {};
+    const savedContact = (savedData.answers.contact as unknown as Record<string, string>) ?? {};
     const savedPkg = PACKAGES.find((p) => p.value === savedData.answers.package);
     return (
       <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "var(--font-b)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -606,7 +606,7 @@ export default function OnboardPage() {
   }
 
   if (done) {
-    const contact = (answers.contact as Record<string, string>) ?? {};
+    const contact = (answers.contact as unknown as Record<string, string>) ?? {};
     const pkg = PACKAGES.find((p) => p.value === answers.package);
     return (
       <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "var(--font-b)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -697,7 +697,7 @@ export default function OnboardPage() {
                       className="field-input"
                       type={f.key === "email" ? "email" : "text"}
                       placeholder={f.placeholder ?? ""}
-                      value={((answers[q.id] as Record<string, string>) ?? {})[f.key] ?? ""}
+                      value={((answers[q.id] as unknown as Record<string, string>) ?? {})[f.key] ?? ""}
                       onChange={(e) => setField(q.id, f.key, e.target.value)}
                     />
                   </div>

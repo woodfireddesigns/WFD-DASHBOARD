@@ -224,7 +224,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
           <div style={S.card}>
             <p style={{ fontSize: 10.5, fontWeight: 600, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Notes</p>
             <textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} rows={4} placeholder="Working style, preferences, context…"
-              style={{ width: "100%", fontSize: 13, border: "none", outline: "none", resize: "none", background: "transparent", color: "#1E1C1A", fontFamily: "Inter, sans-serif", lineHeight: 1.6, color: "#6B6560" } as React.CSSProperties} />
+              style={{ width: "100%", fontSize: 13, border: "none", outline: "none", resize: "none", background: "transparent", fontFamily: "Inter, sans-serif", lineHeight: 1.6, color: "#6B6560" } as React.CSSProperties} />
           </div>
 
           <button onClick={archive} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11.5, color: "#C8C0B8", textAlign: "left", padding: "0 4px" }}
