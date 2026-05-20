@@ -106,11 +106,11 @@ export default function PayPage() {
 
           {/* Option 1 — Deposit */}
           <div className="pay-card">
-            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>50% Deposit</p>
+            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 14 }}>50% Deposit</p>
             <p style={{ fontFamily: "var(--font-d)", fontSize: 34, fontWeight: 800, color: "var(--text-primary)", marginBottom: 4 }}>
               ${deposit.toLocaleString()}
             </p>
-            <p style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 22 }}>
+            <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 22 }}>
               Pay half now to get started. The remaining ${deposit.toLocaleString()} is invoiced at delivery before final files transfer.
             </p>
             <button
@@ -126,7 +126,7 @@ export default function PayPage() {
           {/* Option 2 — Full pay */}
           <div className="pay-card recommended">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase" }}>Pay in Full</p>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase" }}>Pay in Full</p>
               <span style={{ fontSize: 10, fontWeight: 700, color: "var(--savings)", background: "rgba(74,222,128,0.1)", padding: "2px 9px", borderRadius: 99 }}>
                 Save ${savings.toLocaleString()}
               </span>
@@ -134,10 +134,10 @@ export default function PayPage() {
             <p style={{ fontFamily: "var(--font-d)", fontSize: 34, fontWeight: 800, color: "var(--savings)", marginBottom: 2 }}>
               ${fullDiscounted.toLocaleString()}
             </p>
-            <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>
-              <s style={{ color: "var(--text-muted)" }}>${price.toLocaleString()}</s> · 5% discount applied
+            <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>
+              <s style={{ color: "var(--text-secondary)" }}>${price.toLocaleString()}</s> · 5% discount applied
             </p>
-            <p style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 22 }}>
+            <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 22 }}>
               Pay everything upfront and save 5%. No balance due at delivery. Files transfer immediately on completion.
             </p>
             <button
@@ -154,12 +154,12 @@ export default function PayPage() {
         {/* Trust signals */}
         <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap" }}>
           {["Secured by Stripe", "256-bit SSL encryption", "No hidden fees", "Cancel anytime before work starts"].map((t) => (
-            <p key={t} style={{ fontSize: 12, color: "var(--text-muted)" }}>✓ {t}</p>
+            <p key={t} style={{ fontSize: 12, color: "var(--text-secondary)" }}>✓ {t}</p>
           ))}
         </div>
 
         <div style={{ marginTop: 32, textAlign: "center" }}>
-          <a href={`/portal/${id}`} style={{ fontSize: 12.5, color: "var(--text-muted)", textDecoration: "none" }}>
+          <a href={`/portal/${id}`} style={{ fontSize: 12.5, color: "var(--text-secondary)", textDecoration: "none" }}>
             ← Back to your portal
           </a>
         </div>

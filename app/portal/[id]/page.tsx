@@ -119,7 +119,7 @@ function PortalPage() {
 
         {/* Project status */}
         <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px", marginBottom: 20 }}>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 18 }}>Project Status</p>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 18 }}>Project Status</p>
           <div style={{ display: "flex", gap: 0 }}>
             {STATUS_STEPS.map((s, i) => {
               const isActive = i === currentStep;
@@ -166,7 +166,7 @@ function PortalPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <p style={{ fontSize: 13.5, fontWeight: 600, color: "var(--savings)", marginBottom: 3 }}>✓ Deposit paid — ${deposit.toLocaleString()}</p>
-                <p style={{ fontSize: 12.5, color: "var(--text-muted)" }}>Balance of ${deposit.toLocaleString()} due at delivery.</p>
+                <p style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>Balance of ${deposit.toLocaleString()} due at delivery.</p>
               </div>
               <a href={`/portal/${id}/pay`} style={{ fontSize: 12.5, color: "var(--accent)", textDecoration: "none", fontWeight: 500 }}>Pay in full →</a>
             </div>
@@ -182,7 +182,7 @@ function PortalPage() {
         {/* Deliverables */}
         {deliverables.length > 0 && (
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px", marginBottom: 20 }}>
-            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>Your Deliverables</p>
+            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 14 }}>Your Deliverables</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {deliverables.map((d, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, alignItems: "center" }}>
@@ -196,21 +196,21 @@ function PortalPage() {
 
         {/* File drop instructions */}
         <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px", marginBottom: 20 }}>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 12 }}>Submit Your Assets</p>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 12 }}>Submit Your Assets</p>
           <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 14 }}>
             Send logos, brand files, photos, copy, and any reference links to:
           </p>
           <a href="mailto:michael@woodfireddesigns.com?subject=Project Assets" style={{ display: "inline-block", padding: "10px 20px", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 6, color: "var(--text-primary)", fontSize: 13.5, fontWeight: 500, textDecoration: "none" }}>
             michael@woodfireddesigns.com
           </a>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 10 }}>
+          <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 10 }}>
             Include your business name in the subject line. Google Drive and Dropbox links work great for large files.
           </p>
         </div>
 
         {/* Contact */}
         <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 22px" }}>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 12 }}>Questions?</p>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 12 }}>Questions?</p>
           <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.65, marginBottom: 14 }}>
             Michael responds to all project questions within one business day. If something is urgent, call or text directly.
           </p>

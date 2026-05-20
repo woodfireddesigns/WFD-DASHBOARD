@@ -160,7 +160,7 @@ export default function ContractPage() {
   if (loading) {
     return (
       <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", fontFamily: "var(--font-b)" }}>
-        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading proposal…</p>
+        <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Loading proposal…</p>
       </div>
     );
   }
@@ -168,7 +168,7 @@ export default function ContractPage() {
   if (!proposal) {
     return (
       <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", fontFamily: "var(--font-b)" }}>
-        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Proposal not found.</p>
+        <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Proposal not found.</p>
       </div>
     );
   }
@@ -188,7 +188,7 @@ export default function ContractPage() {
             <h1 style={{ fontFamily: "var(--font-d)", fontSize: 36, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.1, marginBottom: 6 }}>
               Scope of Work &<br />Service Agreement
             </h1>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 10 }}>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 10 }}>
               Proposal #{proposal.id.slice(0, 8).toUpperCase()} · {proposalDate}
             </p>
           </div>
@@ -204,25 +204,25 @@ export default function ContractPage() {
         {/* Parties */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 40 }}>
           <div className="print-card" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 22px" }}>
-            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>Service Provider</p>
+            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 10 }}>Service Provider</p>
             <p style={{ fontFamily: "var(--font-d)", fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Wood Fired Designs</p>
             <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Undrafted Designs LLC</p>
             <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>michael@woodfireddesigns.com</p>
           </div>
           <div className="print-card" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 22px" }}>
-            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>Client</p>
+            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 10 }}>Client</p>
             <p style={{ fontFamily: "var(--font-d)", fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>{proposal.client_name}</p>
             {proposal.company && <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>{proposal.company}</p>}
             <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>{proposal.email}</p>
             {proposal.projected_start && (
-              <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>Start: {proposal.projected_start}</p>
+              <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 6 }}>Start: {proposal.projected_start}</p>
             )}
           </div>
         </div>
 
         {/* Scope of Work */}
         <div style={{ marginBottom: 40 }}>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 18 }}>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 18 }}>
             Scope of Work — Deliverables
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -242,7 +242,7 @@ export default function ContractPage() {
                   </p>
                 </div>
                 {item.description && (
-                  <p style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: item.deliverables?.length ? 10 : 0 }}>
+                  <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: item.deliverables?.length ? 10 : 0 }}>
                     {item.description}
                   </p>
                 )}
@@ -263,7 +263,7 @@ export default function ContractPage() {
               <div className="print-card" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 22px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <p style={{ fontFamily: "var(--font-d)", fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Rush Delivery Fee</p>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3 }}>~40% faster turnaround, prioritised in queue.</p>
+                  <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 3 }}>~40% faster turnaround, prioritised in queue.</p>
                 </div>
                 <p style={{ fontFamily: "var(--font-d)", fontSize: 16, fontWeight: 700, color: "var(--text-secondary)" }}>
                   +{fmt(proposal.rush_fee)}
@@ -278,8 +278,8 @@ export default function ContractPage() {
           {proposal.bundle_label && proposal.savings > 0 && (
             <>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Subtotal</p>
-                <p style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "monospace" }}>{fmt(proposal.subtotal + proposal.rush_fee)}</p>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Subtotal</p>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", fontFamily: "monospace" }}>{fmt(proposal.subtotal + proposal.rush_fee)}</p>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <p style={{ fontSize: 13, color: "var(--savings)" }}>{proposal.bundle_label} discount</p>
@@ -292,14 +292,14 @@ export default function ContractPage() {
             <p style={{ fontFamily: "var(--font-d)", fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Total Investment</p>
             <p style={{ fontFamily: "var(--font-d)", fontSize: 32, fontWeight: 800, color: "var(--accent)" }}>{fmt(proposal.total)}</p>
           </div>
-          <p style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 8 }}>
+          <p style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 8 }}>
             50% deposit due upon signing · Remainder due at delivery
           </p>
         </div>
 
         {/* Terms */}
         <div style={{ marginBottom: 40 }}>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 18 }}>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 18 }}>
             Terms & Conditions
           </p>
           <div className="print-card" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px", display: "flex", flexDirection: "column", gap: 14 }}>
@@ -329,20 +329,20 @@ export default function ContractPage() {
                 Signed by <strong style={{ color: "var(--text-primary)" }}>{proposal.signed_name || signedName}</strong>
                 {proposal.signed_at && ` on ${new Date(proposal.signed_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`}.
               </p>
-              <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
                 Michael will be in touch within one business day with your deposit invoice and a project kickoff link. Check {proposal.email} for next steps.
               </p>
               <div style={{ marginTop: 24, padding: "14px 18px", background: "var(--bg-elevated)", borderRadius: 8, border: "1px solid var(--border)" }}>
-                <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Deposit due to start</p>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>Deposit due to start</p>
                 <p style={{ fontFamily: "var(--font-d)", fontSize: 22, fontWeight: 700, color: "var(--accent)" }}>
                   {fmt(Math.round(proposal.total * 0.5))}
                 </p>
-                <p style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 4 }}>50% of {fmt(proposal.total)}</p>
+                <p style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>50% of {fmt(proposal.total)}</p>
               </div>
             </div>
           ) : (
             <div>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 18 }}>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 18 }}>
                 Sign to Agree
               </p>
               <div className="print-card" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "28px" }}>
@@ -351,7 +351,7 @@ export default function ContractPage() {
                 </p>
 
                 <div style={{ marginBottom: 16 }}>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>Full Legal Name</p>
+                  <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 8 }}>Full Legal Name</p>
                   <input
                     type="text"
                     placeholder="Type your full name"
@@ -380,7 +380,7 @@ export default function ContractPage() {
                   {signing ? "Signing…" : `Sign & Confirm — ${fmt(proposal.total)} Total`}
                 </button>
 
-                <p style={{ fontSize: 11.5, color: "var(--text-muted)", textAlign: "center", marginTop: 10 }}>
+                <p style={{ fontSize: 11.5, color: "var(--text-secondary)", textAlign: "center", marginTop: 10 }}>
                   Deposit of {fmt(Math.round(proposal.total * 0.5))} due to start. Invoice sent to {proposal.email}.
                 </p>
               </div>

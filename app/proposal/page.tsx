@@ -560,7 +560,7 @@ function ProposalPanel({ state, done }: { state: ProposalState; done: boolean })
 
   return (
     <div style={{ height: "100%", overflowY: "auto", padding: "48px 36px", display: "flex", flexDirection: "column" }}>
-      <p style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.16em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 20 }}>
+      <p style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.16em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 20 }}>
         Your Proposal
       </p>
 
@@ -571,7 +571,7 @@ function ProposalPanel({ state, done }: { state: ProposalState; done: boolean })
         </h2>
         {state.company && <p style={{ fontSize: 13.5, color: "var(--text-secondary)" }}>{state.company}</p>}
         {done && state.projectedStart && (
-          <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>Projected Start: {state.projectedStart}</p>
+          <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>Projected Start: {state.projectedStart}</p>
         )}
       </div>
 
@@ -580,7 +580,7 @@ function ProposalPanel({ state, done }: { state: ProposalState; done: boolean })
       {/* Empty state */}
       {state.lineItems.length === 0 && (
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", lineHeight: 1.8 }}>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", textAlign: "center", lineHeight: 1.8 }}>
             Answer the questions on the left<br />and your scope builds here.
           </p>
         </div>
@@ -611,7 +611,7 @@ function ProposalPanel({ state, done }: { state: ProposalState; done: boolean })
                   </span>
                 )}
               </div>
-              <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.55, marginBottom: 12 }}>
+              <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.55, marginBottom: 12 }}>
                 {item.description}
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
@@ -628,7 +628,7 @@ function ProposalPanel({ state, done }: { state: ProposalState; done: boolean })
           {state.rushFee > 0 && (
             <div className="line-item-row" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 18px" }}>
               <p style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>Rush Delivery</p>
-              <p style={{ fontSize: 12, color: "var(--text-muted)" }}>~40% faster turnaround, prioritised in queue.</p>
+              <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>~40% faster turnaround, prioritised in queue.</p>
             </div>
           )}
 
@@ -682,7 +682,7 @@ function ProposalPanel({ state, done }: { state: ProposalState; done: boolean })
                 )}
 
                 {/* Description */}
-                <p style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 12 }}>
+                <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 12 }}>
                   {item.description}
                 </p>
 
@@ -703,7 +703,7 @@ function ProposalPanel({ state, done }: { state: ProposalState; done: boolean })
               <div className="line-item-row" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>Rush Delivery</p>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)" }}>~40% faster turnaround, prioritised in the queue.</p>
+                  <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>~40% faster turnaround, prioritised in the queue.</p>
                 </div>
                 <p style={{ fontFamily: "var(--font-d)", fontSize: 16, fontWeight: 700, color: "var(--text-secondary)", flexShrink: 0 }}>
                   +${state.rushFee.toLocaleString()}
@@ -730,8 +730,8 @@ function ProposalPanel({ state, done }: { state: ProposalState; done: boolean })
           {/* Totals block */}
           <div style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "18px 20px", marginBottom: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Subtotal</p>
-              <p style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "monospace" }}>${(state.subtotal + state.rushFee).toLocaleString()}</p>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Subtotal</p>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", fontFamily: "monospace" }}>${(state.subtotal + state.rushFee).toLocaleString()}</p>
             </div>
             {state.savings > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
@@ -747,7 +747,7 @@ function ProposalPanel({ state, done }: { state: ProposalState; done: boolean })
               </p>
             </div>
             {state.projectedStart && (
-              <p style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 6 }}>Projected Start: {state.projectedStart}</p>
+              <p style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 6 }}>Projected Start: {state.projectedStart}</p>
             )}
           </div>
 
@@ -763,9 +763,9 @@ function ProposalPanel({ state, done }: { state: ProposalState; done: boolean })
           {/* Scope notes */}
           {state.scopeNotes.length > 0 && (
             <div style={{ marginBottom: 20, padding: "12px 16px", background: "var(--bg-elevated)", borderRadius: 8, border: "1px solid var(--border)" }}>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Scope Notes</p>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 8 }}>Scope Notes</p>
               {state.scopeNotes.map((note, i) => (
-                <p key={i} style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.7 }}>· {note}</p>
+                <p key={i} style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.7 }}>· {note}</p>
               ))}
             </div>
           )}
@@ -794,7 +794,7 @@ function QuestionRenderer({
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {q.fields?.map((f) => (
           <div key={f.key}>
-            <label style={{ display: "block", fontSize: 11.5, fontWeight: 500, color: "var(--text-muted)", marginBottom: 5, letterSpacing: "0.04em" }}>
+            <label style={{ display: "block", fontSize: 11.5, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 5, letterSpacing: "0.04em" }}>
               {f.label}{f.required && <span style={{ color: "var(--accent)", marginLeft: 2 }}>*</span>}
             </label>
             <input
@@ -825,7 +825,7 @@ function QuestionRenderer({
                     <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: "var(--accent)", color: "#fff", letterSpacing: "0.05em" }}>{opt.badge}</span>
                   )}
                 </div>
-                {opt.subtext && <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{opt.subtext}</p>}
+                {opt.subtext && <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{opt.subtext}</p>}
               </div>
             </div>
           );
@@ -854,7 +854,7 @@ function QuestionRenderer({
                 {opt.icon && <span style={{ fontSize: 14 }}>{opt.icon}</span>}
                 <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>{opt.label}</p>
               </div>
-              {opt.subtext && <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{opt.subtext}</p>}
+              {opt.subtext && <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{opt.subtext}</p>}
             </div>
           </div>
         );
@@ -1042,7 +1042,7 @@ export default function ProposalPage() {
         <div style={{ flex: "0 0 40%", display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 52px", background: "var(--bg-surface)", borderRight: "1px solid var(--border)" }}>
           <div className={animClass} style={{ maxWidth: 400, width: "100%" }}>
             <div style={{ fontSize: 44, marginBottom: 20 }}>🔥</div>
-            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 12 }}>
+            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 12 }}>
               Wood Fired Designs
             </p>
             <h2 style={{ fontFamily: "var(--font-d)", fontSize: 30, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.2, marginBottom: 14 }}>
@@ -1061,7 +1061,7 @@ export default function ProposalPage() {
             >
               Schedule a Call →
             </a>
-            <p style={{ fontSize: 11.5, color: "var(--text-muted)", textAlign: "center", marginBottom: 20 }}>
+            <p style={{ fontSize: 11.5, color: "var(--text-secondary)", textAlign: "center", marginBottom: 20 }}>
               30 minutes. We'll walk through scope and answer every question.
             </p>
 
@@ -1102,7 +1102,7 @@ export default function ProposalPage() {
             >
               {submitting ? "Preparing your contract…" : "I'm Ready — Review & Sign →"}
             </button>
-            <p style={{ fontSize: 11.5, color: "var(--text-muted)", textAlign: "center" }}>
+            <p style={{ fontSize: 11.5, color: "var(--text-secondary)", textAlign: "center" }}>
               Saves your proposal · Opens the contract to sign
             </p>
           </div>
@@ -1127,7 +1127,7 @@ export default function ProposalPage() {
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "48px 52px", maxWidth: 580 }}>
           {/* Step label */}
-          <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 28 }}>
+          <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 28 }}>
             Step {step + 1} of {queue.length}
           </p>
 

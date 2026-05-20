@@ -29,7 +29,7 @@ const CSS = `
   .btn-primary{padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-family:var(--font-b);font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.04em;transition:opacity 0.2s;}
   .btn-primary:disabled{opacity:0.35;cursor:not-allowed;}
   .btn-ghost{padding:12px 20px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:7px;font-family:var(--font-b);font-size:13.5px;cursor:pointer;transition:color 0.18s,border-color 0.18s;}
-  .btn-ghost:hover{color:var(--text-primary);border-color:var(--text-muted);}
+  .btn-ghost:hover{color:var(--text-primary);border-color:var(--text-secondary);}
   .scope-item{animation:scopeIn 0.3s var(--ease) both;}
   @keyframes scopeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .pkg-card{border:1px solid var(--border);border-radius:10px;padding:18px 20px;cursor:pointer;transition:border-color 0.2s,background 0.2s;}
@@ -98,7 +98,7 @@ function ScopePanel({ answers }: { answers: Answers }) {
 
   return (
     <div style={{ height: "100%", overflowY: "auto", padding: "48px 36px", display: "flex", flexDirection: "column" }}>
-      <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.16em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 20 }}>
+      <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.16em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 20 }}>
         Your Project Scope
       </p>
 
@@ -111,14 +111,14 @@ function ScopePanel({ answers }: { answers: Answers }) {
         </div>
       ) : (
         <div style={{ marginBottom: 24 }}>
-          <h2 style={{ fontFamily: "var(--font-d)", fontSize: 18, fontWeight: 600, color: "var(--text-muted)" }}>Your scope builds here</h2>
+          <h2 style={{ fontFamily: "var(--font-d)", fontSize: 18, fontWeight: 600, color: "var(--text-secondary)" }}>Your scope builds here</h2>
         </div>
       )}
 
       <div style={{ height: 1, background: "var(--border)", marginBottom: 24 }} />
 
       {!pkg && (
-        <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.8 }}>Answer the questions on the left and your project scope will populate here in real time.</p>
+        <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.8 }}>Answer the questions on the left and your project scope will populate here in real time.</p>
       )}
 
       {pkg && (
@@ -144,7 +144,7 @@ function ScopePanel({ answers }: { answers: Answers }) {
           {/* Goal */}
           {goal && (
             <div className="scope-item" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 18px" }}>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 5 }}>Primary Goal</p>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 5 }}>Primary Goal</p>
               <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>{goal}</p>
             </div>
           )}
@@ -152,7 +152,7 @@ function ScopePanel({ answers }: { answers: Answers }) {
           {/* Pages */}
           {pages.length > 0 && (
             <div className="scope-item" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 18px" }}>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Pages</p>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 8 }}>Pages</p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                 {pages.map((p) => (
                   <span key={p} style={{ fontSize: 11.5, color: "var(--text-primary)", background: "var(--bg)", border: "1px solid var(--border)", padding: "3px 10px", borderRadius: 99 }}>{p}</span>
@@ -164,7 +164,7 @@ function ScopePanel({ answers }: { answers: Answers }) {
           {/* Style */}
           {style.length > 0 && (
             <div className="scope-item" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 18px" }}>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Style Direction</p>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 8 }}>Style Direction</p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                 {style.map((s) => (
                   <span key={s} style={{ fontSize: 11.5, color: "var(--accent)", background: "var(--accent-dim)", padding: "3px 10px", borderRadius: 99 }}>{s}</span>
@@ -176,7 +176,7 @@ function ScopePanel({ answers }: { answers: Answers }) {
           {/* Integrations */}
           {integrations.length > 0 && (
             <div className="scope-item" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 18px" }}>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Integrations</p>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 8 }}>Integrations</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {integrations.map((i) => (
                   <div key={i} style={{ display: "flex", gap: 7 }}>
@@ -191,7 +191,7 @@ function ScopePanel({ answers }: { answers: Answers }) {
           {/* Timeline */}
           {answers.launch_timeline && (
             <div className="scope-item" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 18px" }}>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 5 }}>Launch Timeline</p>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 5 }}>Launch Timeline</p>
               <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>{answers.launch_timeline as string}</p>
             </div>
           )}
@@ -566,7 +566,7 @@ export default function OnboardPage() {
       <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "var(--font-b)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div className="q-enter" style={{ maxWidth: 480, width: "100%", textAlign: "center" }}>
           <div style={{ fontSize: 40, marginBottom: 20 }}>👋</div>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 12 }}>Welcome Back</p>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 12 }}>Welcome Back</p>
           <h2 style={{ fontFamily: "var(--font-d)", fontSize: 28, color: "var(--text-primary)", lineHeight: 1.15, marginBottom: 14 }}>
             {savedContact.first_name ? `Hey ${savedContact.first_name} —` : "You left off mid-way."}
           </h2>
@@ -595,7 +595,7 @@ export default function OnboardPage() {
                 setResumePrompt(false);
                 setSavedData(null);
               }}
-              style={{ padding: "13px", background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)", borderRadius: 8, fontFamily: "var(--font-b)", fontSize: 13.5, cursor: "pointer" }}
+              style={{ padding: "13px", background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 8, fontFamily: "var(--font-b)", fontSize: 13.5, cursor: "pointer" }}
             >
               Start Over
             </button>
@@ -612,7 +612,7 @@ export default function OnboardPage() {
       <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "var(--font-b)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div className="q-enter" style={{ maxWidth: 520, width: "100%", textAlign: "center" }}>
           <div style={{ fontSize: 48, marginBottom: 20 }}>🔥</div>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 12 }}>Wood Fired Designs</p>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 12 }}>Wood Fired Designs</p>
           <h2 style={{ fontFamily: "var(--font-d)", fontSize: 32, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.15, marginBottom: 14 }}>
             You&apos;re all set,<br />{contact.first_name || "friend"}.
           </h2>
@@ -635,7 +635,7 @@ export default function OnboardPage() {
           >
             {submitting ? "Saving your project…" : "Generate My Contract →"}
           </button>
-          <button onClick={() => { setDone(false); setDir("back"); setStep(visibleQuestions.length - 1); }} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12.5, cursor: "pointer" }}>
+          <button onClick={() => { setDone(false); setDir("back"); setStep(visibleQuestions.length - 1); }} style={{ background: "none", border: "none", color: "var(--text-secondary)", fontSize: 12.5, cursor: "pointer" }}>
             ← Go back and edit
           </button>
         </div>
@@ -652,7 +652,7 @@ export default function OnboardPage() {
         </div>
         <div className="q-inner" style={{ flex: 1, display: "flex", flexDirection: "column", padding: "48px 52px", maxWidth: 600 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
-            <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase" }}>
+            <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase" }}>
               Step {stepIndex + 1} of {visibleQuestions.length}
             </p>
             <p style={{ fontSize: 11, color: justSaved ? "var(--accent)" : "transparent", transition: "color 0.4s", letterSpacing: "0.06em", textTransform: "uppercase" }}>
@@ -724,10 +724,10 @@ export default function OnboardPage() {
                       <p style={{ fontFamily: "var(--font-d)", fontSize: 16, color: "var(--text-primary)", letterSpacing: "0.01em" }}>{pkg.label}</p>
                       <div style={{ display: "flex", gap: 6 }}>
                         {pkg.badge && <span style={{ fontSize: 10, fontWeight: 600, color: "var(--accent)", background: "var(--accent-dim)", padding: "2px 8px", borderRadius: 99 }}>{pkg.badge}</span>}
-                        <span style={{ fontSize: 10, color: "var(--text-muted)", background: "var(--bg-elevated)", border: "1px solid var(--border)", padding: "2px 8px", borderRadius: 99 }}>{pkg.turnaround}</span>
+                        <span style={{ fontSize: 10, color: "var(--text-secondary)", background: "var(--bg-elevated)", border: "1px solid var(--border)", padding: "2px 8px", borderRadius: 99 }}>{pkg.turnaround}</span>
                       </div>
                     </div>
-                    <p style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.55, marginBottom: 8 }}>{pkg.subtext}</p>
+                    <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.55, marginBottom: 8 }}>{pkg.subtext}</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                       {pkg.includes.map((d) => (
                         <span key={d} style={{ fontSize: 11, color: "var(--text-secondary)", background: "var(--bg)", border: "1px solid var(--border)", padding: "2px 9px", borderRadius: 99 }}>{d}</span>
@@ -746,7 +746,7 @@ export default function OnboardPage() {
                     <div className="opt-radio" />
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>{opt.label}</p>
-                      {opt.subtext && <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{opt.subtext}</p>}
+                      {opt.subtext && <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{opt.subtext}</p>}
                     </div>
                   </div>
                 ))}

@@ -151,7 +151,7 @@ export default function ContractPage() {
             <h1 style={{ fontFamily: "var(--font-d)", fontSize: 34, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.1, marginBottom: 8 }}>
               Scope of Work &<br />Service Agreement
             </h1>
-            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Contract #{(intake.id as string).slice(0, 8).toUpperCase()} · {contractDate}</p>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Contract #{(intake.id as string).slice(0, 8).toUpperCase()} · {contractDate}</p>
           </div>
           <button className="no-print" onClick={() => window.print()} style={{ padding: "8px 16px", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 6, color: "var(--text-secondary)", fontSize: 12, cursor: "pointer", fontFamily: "var(--font-b)" }}>
             Print / Save PDF
@@ -165,7 +165,7 @@ export default function ContractPage() {
             { title: "Client", lines: [clientName, intake.business_name as string, intake.email as string, intake.city ? `${intake.city}${intake.state ? `, ${intake.state}` : ""}` : ""].filter(Boolean) },
           ].map(({ title, lines }) => (
             <div key={title} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "18px 20px" }}>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>{title}</p>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 10 }}>{title}</p>
               {lines.map((l, i) => <p key={i} style={{ fontSize: i === 0 ? 15 : 13, fontWeight: i === 0 ? 700 : 400, fontFamily: i === 0 ? "var(--font-d)" : "var(--font-b)", color: i === 0 ? "var(--text-primary)" : "var(--text-secondary)", marginBottom: i === 0 ? 4 : 2 }}>{l}</p>)}
             </div>
           ))}
@@ -173,7 +173,7 @@ export default function ContractPage() {
 
         {/* Project Brief */}
         <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 22px", marginBottom: 28 }}>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>Project Brief</p>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 14 }}>Project Brief</p>
           {[
             ["Primary Goal", intake.primary_goal as string],
             ["Target Customer", intake.target_customer as string],
@@ -183,7 +183,7 @@ export default function ContractPage() {
             ["Platform Preference", intake.platform_pref as string],
           ].filter(([, v]) => v).map(([label, val]) => (
             <div key={label as string} style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-muted)", marginBottom: 3 }}>{label as string}</p>
+              <p style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 3 }}>{label as string}</p>
               <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{val as string}</p>
             </div>
           ))}
@@ -191,7 +191,7 @@ export default function ContractPage() {
 
         {/* Scope of Work */}
         <div style={{ marginBottom: 28 }}>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 16 }}>Scope of Work — {PACKAGE_LABELS[pkg]}</p>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 16 }}>Scope of Work — {PACKAGE_LABELS[pkg]}</p>
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 22px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {deliverables.map((d, i) => (
@@ -206,25 +206,25 @@ export default function ContractPage() {
 
         {/* Investment */}
         <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 22px", marginBottom: 28 }}>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>Investment</p>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 14 }}>Investment</p>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
             <p style={{ fontFamily: "var(--font-d)", fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Total — {PACKAGE_LABELS[pkg]}</p>
             <p style={{ fontFamily: "var(--font-d)", fontSize: 30, fontWeight: 800, color: "var(--accent)" }}>${price.toLocaleString()}</p>
           </div>
           <div style={{ height: 1, background: "var(--border)", marginBottom: 12 }} />
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Deposit due to start (50%)</p>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Deposit due to start (50%)</p>
             <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>${deposit.toLocaleString()}</p>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Balance due at delivery (50%)</p>
-            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>${deposit.toLocaleString()}</p>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Balance due at delivery (50%)</p>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>${deposit.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Terms */}
         <div style={{ marginBottom: 40 }}>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 16 }}>Terms & Conditions</p>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 16 }}>Terms & Conditions</p>
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px", display: "flex", flexDirection: "column", gap: 16 }}>
             {[
               ["1. Payment", "A non-refundable 50% deposit is required before any work begins. The remaining 50% balance is due upon project completion, before final files and credentials are transferred. Alternatively, full payment upfront receives a 5% discount. All prices are in USD."],
@@ -256,19 +256,19 @@ export default function ContractPage() {
                 Signed by <strong style={{ color: "var(--text-primary)" }}>{intake.signed_name as string || signedName}</strong>. Redirecting you to your client portal…
               </p>
               <div style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 8, padding: "14px", display: "inline-block" }}>
-                <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Deposit to start</p>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>Deposit to start</p>
                 <p style={{ fontFamily: "var(--font-d)", fontSize: 24, fontWeight: 800, color: "var(--accent)" }}>${deposit.toLocaleString()}</p>
               </div>
             </div>
           ) : (
             <div>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 16 }}>Electronic Signature</p>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 16 }}>Electronic Signature</p>
               <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "28px" }}>
                 <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 24 }}>
                   By signing below, you confirm you have read and agree to the Scope of Work and all Terms & Conditions above. Your typed name constitutes a legally binding electronic signature under the ESIGN Act.
                 </p>
                 <div style={{ marginBottom: 16 }}>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>Full Legal Name *</p>
+                  <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 8 }}>Full Legal Name *</p>
                   <input type="text" placeholder="Type your full name" value={signedName} onChange={(e) => setSignedName(e.target.value)} />
                 </div>
                 <label style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer", marginBottom: 24 }}>
@@ -280,7 +280,7 @@ export default function ContractPage() {
                 <button className="sign-btn" disabled={!signedName.trim() || !agreed || signing} onClick={handleSign}>
                   {signing ? "Signing…" : `Sign & Continue → $${deposit.toLocaleString()} deposit due`}
                 </button>
-                <p style={{ fontSize: 11.5, color: "var(--text-muted)", textAlign: "center", marginTop: 10 }}>
+                <p style={{ fontSize: 11.5, color: "var(--text-secondary)", textAlign: "center", marginTop: 10 }}>
                   You'll be taken to your client portal to complete payment.
                 </p>
               </div>
