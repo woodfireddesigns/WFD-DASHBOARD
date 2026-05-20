@@ -80,6 +80,43 @@ const PACKAGES = [
 const PAGES_OPTIONS = ["Home", "About", "Services", "Portfolio / Work", "Contact", "Blog", "FAQ", "Booking / Scheduling", "Team", "Testimonials"];
 const INTEGRATION_OPTIONS = ["Online booking system", "Email capture / newsletter", "Online store", "Social media feeds", "Google Analytics", "Chat widget", "Payment processing", "None needed"];
 const STYLE_OPTIONS = ["Clean & minimal", "Bold & edgy", "Warm & approachable", "Dark & premium", "Bright & energetic", "Classic & professional", "Modern & techy", "Rustic & handcrafted"];
+const BRAND_DELIVERABLE_OPTIONS = ["Logo suite (primary, secondary, favicon)", "Color system", "Typography stack", "Brand guidelines document", "Vehicle wrap / signage files", "Social media templates"];
+
+const INTEGRATION_PRICES: Record<string, number> = {
+  "Online booking system": 400,
+  "Email capture / newsletter": 200,
+  "Online store": 600,
+  "Social media feeds": 150,
+  "Google Analytics": 0,
+  "Chat widget": 200,
+  "Payment processing": 400,
+  "None needed": 0,
+};
+const EXTRA_PAGE_PRICE = 300;
+const INCLUDED_PAGES = 5;
+
+const BASE_PRICES: Record<string, number> = {
+  starter_site: 1200,
+  full_website: 2400,
+  brand_and_site: 4200,
+};
+
+function calcTotal(answers: Answers): { base: number; extraPages: number; integrationItems: {label: string; price: number}[]; total: number } {
+  const pkg = answers.package as string;
+  const base = BASE_PRICES[pkg] ?? 0;
+
+  const pages = (answers.pages as string[]) ?? [];
+  const extraPageCount = Math.max(0, pages.length - INCLUDED_PAGES);
+  const extraPages = extraPageCount * EXTRA_PAGE_PRICE;
+
+  const integrations = ((answers.integrations as string[]) ?? []).filter(i => i !== "None needed");
+  const integrationItems = integrations
+    .map(i => ({ label: i, price: INTEGRATION_PRICES[i] ?? 0 }))
+    .filter(i => i.price > 0);
+
+  const total = base + extraPages + integrationItems.reduce((s, i) => s + i.price, 0);
+  return { base, extraPages, integrationItems, total };
+}
 
 interface Answers { [key: string]: string | string[] | boolean }
 
@@ -95,6 +132,8 @@ function ScopePanel({ answers }: { answers: Answers }) {
   const integrations = ((answers.integrations as string[]) ?? []).filter((i) => i !== "None needed");
   const style = (answers.style_direction as string[]) ?? [];
   const goal = answers.primary_goal as string;
+  const pricing = pkg ? calcTotal(answers) : null;
+  const fmt = (n: number) => "$" + n.toLocaleString();
 
   return (
     <div style={{ height: "100%", overflowY: "auto", padding: "48px 36px", display: "flex", flexDirection: "column" }}>
@@ -195,6 +234,34 @@ function ScopePanel({ answers }: { answers: Answers }) {
               <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>{answers.launch_timeline as string}</p>
             </div>
           )}
+
+          {/* Live pricing */}
+          {pricing && (
+            <div className="scope-item" style={{ background: "var(--bg)", border: "1.5px solid var(--accent)", borderRadius: 10, padding: "16px 18px", marginTop: 4 }}>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", color: "var(--accent)", textTransform: "uppercase", marginBottom: 10 }}>Investment</p>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                <p style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>{SCOPE_LABELS[pkg]}</p>
+                <p style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>{fmt(pricing.base)}</p>
+              </div>
+              {pricing.extraPages > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                  <p style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>Extra pages (+{Math.max(0, pages.length - INCLUDED_PAGES)})</p>
+                  <p style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>+{fmt(pricing.extraPages)}</p>
+                </div>
+              )}
+              {pricing.integrationItems.map(i => (
+                <div key={i.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                  <p style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>{i.label}</p>
+                  <p style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>+{fmt(i.price)}</p>
+                </div>
+              ))}
+              <div style={{ height: 1, background: "var(--border)", margin: "10px 0" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>Total</p>
+                <p style={{ fontFamily: "var(--font-d)", fontSize: 22, color: "var(--accent)" }}>{fmt(pricing.total)}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -290,9 +357,29 @@ const QUESTIONS: Question[] = [
     id: "pages",
     type: "multi_select",
     question: "Which pages do you need?",
-    subtext: "Home and Contact are included in every build. Select any additional pages.",
+    subtext: "First 5 pages are included. Each additional page is +$300.",
     items: PAGES_OPTIONS,
     showIf: (a) => a.package === "full_website" || a.package === "brand_and_site",
+  },
+  {
+    id: "brand_origin",
+    type: "single_select",
+    question: "Where is your brand right now?",
+    subtext: "Helps us understand how much brand work is ahead.",
+    options: [
+      { value: "Starting from zero — no logo, nothing yet", label: "Starting from zero — no logo, nothing yet" },
+      { value: "Have a logo, need the full system", label: "Have a logo, need the full system", subtext: "Colors, type, guidelines." },
+      { value: "Need a refresh — evolve what exists", label: "Need a refresh — evolve what exists" },
+    ],
+    showIf: (a) => a.package === "brand_and_site",
+  },
+  {
+    id: "brand_deliverables",
+    type: "multi_select",
+    question: "Which brand deliverables matter most?",
+    subtext: "All are included in Brand + Site. This helps us prioritize.",
+    items: BRAND_DELIVERABLE_OPTIONS,
+    showIf: (a) => a.package === "brand_and_site",
   },
   {
     id: "has_copy",
@@ -376,8 +463,9 @@ const QUESTIONS: Question[] = [
     id: "integrations",
     type: "multi_select",
     question: "Any integrations or special features needed?",
-    subtext: "Select all that apply.",
+    subtext: "Some add to the total — pricing updates live on the right.",
     items: INTEGRATION_OPTIONS,
+    showIf: (a) => a.package === "full_website" || a.package === "brand_and_site",
   },
   {
     id: "platform_info",

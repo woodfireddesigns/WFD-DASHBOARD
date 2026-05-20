@@ -11,12 +11,31 @@ const PACKAGE_PRICES: Record<string, number> = {
   full_website: 2400,
   brand_and_site: 4200,
 };
+const INTEGRATION_PRICES: Record<string, number> = {
+  "Online booking system": 400,
+  "Email capture / newsletter": 200,
+  "Online store": 600,
+  "Social media feeds": 150,
+  "Google Analytics": 0,
+  "Chat widget": 200,
+  "Payment processing": 400,
+};
+const EXTRA_PAGE_PRICE = 300;
+const INCLUDED_PAGES = 5;
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const pkg = body.package as string;
-    const packagePrice = PACKAGE_PRICES[pkg] ?? 0;
+    const base = PACKAGE_PRICES[pkg] ?? 0;
+
+    const pages = (body.pages ?? []) as string[];
+    const extraPages = Math.max(0, pages.length - INCLUDED_PAGES) * EXTRA_PAGE_PRICE;
+
+    const integrations = (body.integrations ?? []) as string[];
+    const integrationTotal = integrations.reduce((s: number, i: string) => s + (INTEGRATION_PRICES[i] ?? 0), 0);
+
+    const packagePrice = base + extraPages + integrationTotal;
     const clientName = `${body.first_name} ${body.last_name}`.trim();
 
     // 1. Save intake form
