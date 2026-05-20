@@ -692,7 +692,7 @@ export default function OnboardPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {q.fields?.map((f) => (
                   <div key={f.key}>
-                    <p style={{ fontSize: 11.5, color: "var(--text-muted)", marginBottom: 5 }}>{f.label}{f.required ? " *" : ""}</p>
+                    <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 7 }}>{f.label}{f.required ? " *" : ""}</p>
                     <input
                       className="field-input"
                       type={f.key === "email" ? "email" : "text"}
