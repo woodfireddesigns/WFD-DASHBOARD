@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
   try {
     const { intakeId, paymentType } = await req.json();
 
-    // Load intake form
     const { data: intake, error: dbErr } = await supabase
       .from("intake_forms")
       .select("*")
@@ -51,16 +50,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    // Load linked project deliverables
-    const { data: project } = intake.project_id
-      ? await supabase.from("projects").select("deliverables").eq("id", intake.project_id).single()
-      : { data: null };
-
-    const deliverables: string[] = project
-      ? (project.deliverables as { text: string }[]).map((d) => d.text)
-      : [];
-
-    // Calculate total
     const pkg = intake.package as string;
     const clientName = `${intake.first_name} ${intake.last_name}`.trim();
     const businessName = (intake.business_name as string) || clientName;
@@ -69,122 +58,107 @@ export async function POST(req: NextRequest) {
       ? (intake.package_price as number)
       : (BASE_PRICES[pkg] ?? 0);
 
-    // Build priced line items
     const pages = (intake.pages as string[]) ?? [];
     const integrations = (intake.integrations as string[]) ?? [];
     const extraPageCount = Math.max(0, pages.length - INCLUDED_PAGES);
 
-    interface LineItem { description: string; amount: number }
-    const lineItems: LineItem[] = [
-      { description: `${PACKAGE_LABELS[pkg] ?? pkg} — Wood Fired Designs`, amount: basePrice },
-    ];
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
 
+    // Base package
+    lineItems.push({
+      price_data: {
+        currency: "usd",
+        unit_amount: basePrice * 100,
+        product_data: {
+          name: `${PACKAGE_LABELS[pkg] ?? pkg} — Wood Fired Designs`,
+          description: `${businessName}`,
+        },
+      },
+      quantity: 1,
+    });
+
+    // Extra pages
     if (extraPageCount > 0) {
       lineItems.push({
-        description: `Additional pages (${extraPageCount} × $${EXTRA_PAGE_PRICE})`,
-        amount: extraPageCount * EXTRA_PAGE_PRICE,
+        price_data: {
+          currency: "usd",
+          unit_amount: EXTRA_PAGE_PRICE * 100,
+          product_data: { name: `Additional Pages (+${extraPageCount})` },
+        },
+        quantity: extraPageCount,
       });
     }
 
+    // Integrations
     for (const integration of integrations.filter(i => i !== "None needed")) {
       const price = INTEGRATION_PRICES[integration];
-      if (price) lineItems.push({ description: integration, amount: price });
+      if (price) {
+        lineItems.push({
+          price_data: {
+            currency: "usd",
+            unit_amount: price * 100,
+            product_data: { name: integration },
+          },
+          quantity: 1,
+        });
+      }
     }
 
-    const subtotal = lineItems.reduce((s, i) => s + i.amount, 0);
+    const subtotal = lineItems.reduce((s, item) => {
+      const pd = item.price_data as Stripe.Checkout.SessionCreateParams.LineItem.PriceData;
+      return s + ((pd.unit_amount as number) * (item.quantity as number));
+    }, 0) / 100;
 
     if (subtotal === 0) {
-      return NextResponse.json({ error: "Could not determine project price. Contact michael@woodfireddesigns.com." }, { status: 400 });
+      return NextResponse.json({ error: "Could not calculate project price. Contact michael@woodfireddesigns.com." }, { status: 400 });
     }
 
-    // Find or create Stripe customer
-    const existing = await stripe.customers.list({ email: intake.email as string, limit: 1 });
-    const customer = existing.data[0] ?? await stripe.customers.create({
-      email: intake.email as string,
-      name: clientName,
-      metadata: { intake_id: intakeId, business: businessName },
-    });
-
-    // ── Critical: delete ALL pending invoice items for this customer ──
-    // Stale $0 items from previous attempts cause $0 invoices
-    const pendingItems = await stripe.invoiceItems.list({ customer: customer.id, limit: 100 });
-    for (const item of pendingItems.data) {
-      if (!item.invoice) await stripe.invoiceItems.del(item.id);
-    }
-
-    // Build scope description for invoice memo
-    const scopeLines = deliverables.length > 0
-      ? `\n\nScope of Work:\n${deliverables.map(d => `• ${d}`).join("\n")}`
-      : "";
+    const origin = req.nextUrl.origin;
 
     if (paymentType === "deposit") {
       const depositAmount = Math.round(subtotal * 0.5);
-
-      await stripe.invoiceItems.create({
-        customer: customer.id,
-        amount: depositAmount * 100,
-        currency: "usd",
-        description: `50% Project Deposit — ${businessName} (${PACKAGE_LABELS[pkg] ?? pkg})`,
-      });
-
-      const invoice = await stripe.invoices.create({
-        customer: customer.id,
-        collection_method: "send_invoice",
-        auto_advance: false,
-        days_until_due: 7,
-        description: `Project deposit for ${businessName}. Remaining balance of $${depositAmount.toLocaleString()} due upon project delivery.${scopeLines}`,
-        footer: "Wood Fired Designs · Undrafted Designs LLC · michael@woodfireddesigns.com · woodfireddesigns.com",
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        customer_email: intake.email as string,
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            unit_amount: depositAmount * 100,
+            product_data: {
+              name: `50% Project Deposit — ${PACKAGE_LABELS[pkg] ?? pkg}`,
+              description: `${businessName} · Remaining $${depositAmount.toLocaleString()} due at delivery`,
+            },
+          },
+          quantity: 1,
+        }],
         metadata: { intake_id: intakeId, payment_type: "deposit" },
+        success_url: `${origin}/portal/${intake.portal_token}?paid=1`,
+        cancel_url: `${origin}/portal/${intake.portal_token}/pay`,
       });
 
-      const finalized = await stripe.invoices.finalizeInvoice(invoice.id);
-
-      // Safety: never let a $0 invoice through
-      if ((finalized.amount_due ?? 0) === 0) {
-        await stripe.invoices.voidInvoice(finalized.id);
-        return NextResponse.json({ error: `Invoice amount calculated as $0. subtotal=${subtotal}, deposit=${depositAmount}. Contact michael@woodfireddesigns.com.` }, { status: 400 });
-      }
-
-      await supabase.from("intake_forms").update({ stripe_session_id: finalized.id }).eq("id", intakeId);
-      return NextResponse.json({ url: finalized.hosted_invoice_url });
+      await supabase.from("intake_forms").update({ stripe_session_id: session.id }).eq("id", intakeId);
+      return NextResponse.json({ url: session.url });
 
     } else {
-      // Full payment — every priced line item
-      for (const item of lineItems) {
-        await stripe.invoiceItems.create({
-          customer: customer.id,
-          amount: item.amount * 100,
-          currency: "usd",
-          description: item.description,
-        });
-      }
-
-      // 5% discount coupon
+      // Full payment with 5% discount as a coupon
       const coupon = await stripe.coupons.create({
         percent_off: 5,
         duration: "once",
         name: "Full Payment — 5% Discount",
       });
 
-      const invoice = await stripe.invoices.create({
-        customer: customer.id,
-        collection_method: "send_invoice",
-        days_until_due: 7,
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        customer_email: intake.email as string,
+        line_items: lineItems,
         discounts: [{ coupon: coupon.id }],
-        description: `Full project payment — ${businessName}. 5% discount applied for paying in full.${scopeLines}`,
-        footer: "Wood Fired Designs · Undrafted Designs LLC · michael@woodfireddesigns.com · woodfireddesigns.com",
         metadata: { intake_id: intakeId, payment_type: "full" },
+        success_url: `${origin}/portal/${intake.portal_token}?paid=1`,
+        cancel_url: `${origin}/portal/${intake.portal_token}/pay`,
       });
 
-      const finalized = await stripe.invoices.finalizeInvoice(invoice.id);
-
-      if ((finalized.amount_due ?? 0) === 0) {
-        await stripe.invoices.voidInvoice(finalized.id);
-        return NextResponse.json({ error: `Invoice amount calculated as $0. subtotal=${subtotal}. Contact michael@woodfireddesigns.com.` }, { status: 400 });
-      }
-
-      await supabase.from("intake_forms").update({ stripe_session_id: finalized.id }).eq("id", intakeId);
-      return NextResponse.json({ url: finalized.hosted_invoice_url });
+      await supabase.from("intake_forms").update({ stripe_session_id: session.id }).eq("id", intakeId);
+      return NextResponse.json({ url: session.url });
     }
 
   } catch (err) {
