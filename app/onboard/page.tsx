@@ -676,11 +676,11 @@ export default function OnboardPage() {
                   { icon: "🔁", title: "Instant Deploys & Rollbacks", body: "Every update goes live in seconds. If anything ever looks wrong, we can roll back to any previous version instantly." },
                   { icon: "🏆", title: "Used by the Best", body: "Vercel powers sites for Nike, Lego, The Washington Post, and thousands of high-growth brands. It's the gold standard for modern web hosting." },
                 ].map(({ icon, title, body }) => (
-                  <div key={title} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 16px" }}>
+                  <div key={title} style={{ display: "flex", gap: 16, alignItems: "flex-start", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "18px 20px" }}>
                     <span style={{ fontSize: 20, flexShrink: 0 }}>{icon}</span>
                     <div>
-                      <p style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>{title}</p>
-                      <p style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.6 }}>{body}</p>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 5 }}>{title}</p>
+                      <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.7 }}>{body}</p>
                     </div>
                   </div>
                 ))}
