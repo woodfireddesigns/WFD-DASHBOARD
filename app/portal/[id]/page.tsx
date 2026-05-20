@@ -47,6 +47,10 @@ function PortalPage() {
   const [intake, setIntake] = useState<IntakeRow | null>(null);
   const [project, setProject] = useState<ProjectRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!document.getElementById("portal-css")) {
@@ -59,6 +63,17 @@ function PortalPage() {
     if (!id) return;
     supabase.from("intake_forms").select("*").eq("portal_token", id).single().then(async ({ data: intakeData }) => {
       setIntake(intakeData);
+      if (intakeData) {
+        setForm({
+          first_name: (intakeData.first_name as string) ?? "",
+          last_name: (intakeData.last_name as string) ?? "",
+          business_name: (intakeData.business_name as string) ?? "",
+          email: (intakeData.email as string) ?? "",
+          phone: (intakeData.phone as string) ?? "",
+          city: (intakeData.city as string) ?? "",
+          state: (intakeData.state as string) ?? "",
+        });
+      }
       if (intakeData?.project_id) {
         const { data: proj } = await supabase.from("projects").select("*").eq("id", intakeData.project_id).single();
         setProject(proj);
@@ -206,6 +221,92 @@ function PortalPage() {
           <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 10 }}>
             Include your business name in the subject line. Google Drive and Dropbox links work great for large files.
           </p>
+        </div>
+
+        {/* Your Info */}
+        <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase" }}>Your Information</p>
+            {!editing && (
+              <button onClick={() => setEditing(true)} style={{ fontSize: 12.5, color: "var(--accent)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-b)", fontWeight: 500 }}>
+                Edit
+              </button>
+            )}
+          </div>
+
+          {!editing ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px" }}>
+              {[
+                ["Name", `${form.first_name} ${form.last_name}`.trim()],
+                ["Business", form.business_name],
+                ["Email", form.email],
+                ["Phone", form.phone],
+                ["City", form.city],
+                ["State", form.state],
+              ].filter(([, v]) => v).map(([label, val]) => (
+                <div key={label}>
+                  <p style={{ fontSize: 11, color: "var(--text-secondary)", marginBottom: 2 }}>{label}</p>
+                  <p style={{ fontSize: 13.5, color: "var(--text-primary)" }}>{val}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                {[
+                  { key: "first_name", label: "First Name" },
+                  { key: "last_name", label: "Last Name" },
+                  { key: "business_name", label: "Business Name" },
+                  { key: "email", label: "Email" },
+                  { key: "phone", label: "Phone" },
+                  { key: "city", label: "City" },
+                  { key: "state", label: "State" },
+                ].map(({ key, label }) => (
+                  <div key={key}>
+                    <p style={{ fontSize: 11.5, color: "var(--text-secondary)", marginBottom: 5 }}>{label}</p>
+                    <input
+                      type="text"
+                      value={form[key] ?? ""}
+                      onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
+                      style={{ width: "100%", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 6, color: "var(--text-primary)", fontFamily: "var(--font-b)", fontSize: 13.5, padding: "9px 12px", outline: "none" }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={async () => {
+                    setSaving(true);
+                    await supabase.from("intake_forms").update({
+                      first_name: form.first_name,
+                      last_name: form.last_name,
+                      business_name: form.business_name || null,
+                      email: form.email,
+                      phone: form.phone || null,
+                      city: form.city || null,
+                      state: form.state || null,
+                    }).eq("id", intake!.id);
+                    setIntake((prev) => prev ? { ...prev, ...form } : prev);
+                    setSaving(false);
+                    setSaved(true);
+                    setEditing(false);
+                    setTimeout(() => setSaved(false), 3000);
+                  }}
+                  disabled={saving}
+                  style={{ padding: "10px 20px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, fontFamily: "var(--font-b)", fontSize: 13.5, fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1 }}
+                >
+                  {saving ? "Saving…" : "Save Changes"}
+                </button>
+                <button
+                  onClick={() => setEditing(false)}
+                  style={{ padding: "10px 18px", background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "var(--font-b)", fontSize: 13.5, cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+              </div>
+              {saved && <p style={{ fontSize: 12.5, color: "var(--savings)", marginTop: 10 }}>✓ Information updated</p>}
+            </div>
+          )}
         </div>
 
         {/* Contact */}
