@@ -38,7 +38,7 @@ export async function sendQuestionnaireStarted(data: {
   total: number;
   portalToken: string;
 }) {
-  const portalUrl = `https://wfd-dashboard-michaeltdesh-2110s-projects.vercel.app/portal/${data.portalToken}`;
+  const portalUrl = `https://wfd-dashboard.vercel.app/portal/${data.portalToken}`;
   await resend.emails.send({
     from: FROM,
     to: TO,
@@ -72,7 +72,7 @@ export async function sendContractSigned(data: {
   signedName: string;
   portalToken: string;
 }) {
-  const portalUrl = `https://wfd-dashboard-michaeltdesh-2110s-projects.vercel.app/portal/${data.portalToken}`;
+  const portalUrl = `https://wfd-dashboard.vercel.app/portal/${data.portalToken}`;
   const deposit = Math.round(data.total * 0.5);
   await resend.emails.send({
     from: FROM,
@@ -106,7 +106,7 @@ export async function sendInvoicePaid(data: {
   paymentType: string;
   portalToken: string;
 }) {
-  const portalUrl = `https://wfd-dashboard-michaeltdesh-2110s-projects.vercel.app/portal/${data.portalToken}`;
+  const portalUrl = `https://wfd-dashboard.vercel.app/portal/${data.portalToken}`;
   await resend.emails.send({
     from: FROM,
     to: TO,
