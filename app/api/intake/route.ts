@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
       total: packagePrice,
       portalToken: intake.portal_token,
       answers: body,
-    }).catch(console.error);
+    }).catch((e) => console.error("RESEND ERROR:", JSON.stringify(e)));
 
     return NextResponse.json({
       intakeId: intake.id,
