@@ -209,6 +209,33 @@ function PortalPage() {
           </div>
         )}
 
+        {/* Questionnaire answers */}
+        {intake && (
+          <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px", marginBottom: 20 }}>
+            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 16 }}>Your Questionnaire Answers</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {([
+                ["Primary Goal", intake.primary_goal],
+                ["Target Customer", intake.target_customer],
+                ["Differentiator", intake.differentiator],
+                ["Competitors / Refs", intake.competitor_refs],
+                ["Style Direction", (intake.style_direction as string[] ?? []).join(", ")],
+                ["Brand Words", intake.brand_words],
+                ["Color Preferences", intake.color_prefs],
+                ["Brand Assets", intake.brand_assets],
+                ["Integrations", (intake.integrations as string[] ?? []).join(", ")],
+                ["Launch Timeline", intake.launch_timeline],
+                ["Additional Notes", intake.extra_notes],
+              ] as [string, unknown][]).filter(([, v]) => v && String(v).trim()).map(([label, val]) => (
+                <div key={label}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
+                  <p style={{ fontSize: 13.5, color: "var(--text-primary)", lineHeight: 1.6 }}>{String(val)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* File drop instructions */}
         <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px", marginBottom: 20 }}>
           <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 12 }}>Submit Your Assets</p>

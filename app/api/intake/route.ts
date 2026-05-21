@@ -151,6 +151,7 @@ export async function POST(req: NextRequest) {
       package: PACKAGE_LABELS[pkg] ?? pkg,
       total: packagePrice,
       portalToken: intake.portal_token,
+      answers: body,
     }).catch(console.error);
 
     return NextResponse.json({
