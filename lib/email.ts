@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const TO = "michael@woodfireddesigns.com";
+const TO = "michaeltdesh@gmail.com";
 const FROM = "WFD Notifications <notifications@woodfireddesigns.com>";
 
 const fmt = (n: number) => "$" + n.toLocaleString();
