@@ -541,6 +541,21 @@ export default function OnboardPage() {
     document.head.appendChild(s);
   }, []);
 
+  // Press Enter to advance (skip on textarea so newlines still work)
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key !== "Enter") return;
+      if (done || resumePrompt) return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "TEXTAREA") return;
+      if (!canAdvanceQ(q, answers)) return;
+      e.preventDefault();
+      next();
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  });
+
   // On mount — check for saved progress
   useEffect(() => {
     try {
