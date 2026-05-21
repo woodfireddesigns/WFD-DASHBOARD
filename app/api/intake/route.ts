@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendQuestionnaireStarted } from "@/lib/email";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -140,6 +141,17 @@ export async function POST(req: NextRequest) {
         .update({ project_id: project?.id ?? null, client_id: client?.id ?? null })
         .eq("id", intake.id);
     }
+
+    // Fire notification (non-blocking)
+    sendQuestionnaireStarted({
+      name: clientName,
+      business: body.business_name ?? "",
+      email: body.email,
+      phone: body.phone ?? "",
+      package: PACKAGE_LABELS[pkg] ?? pkg,
+      total: packagePrice,
+      portalToken: intake.portal_token,
+    }).catch(console.error);
 
     return NextResponse.json({
       intakeId: intake.id,

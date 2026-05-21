@@ -107,10 +107,15 @@ export default function ContractPage() {
   async function handleSign() {
     if (!signedName.trim() || !agreed || !intake) return;
     setSigning(true);
-    const signedAt = new Date().toISOString();
-    await supabase.from("intake_forms").update({ status: "signed", signed_name: signedName.trim(), signed_at: signedAt }).eq("id", intake.id);
 
-    // Create invoice
+    // Use API route so email notification fires server-side
+    await fetch("/api/sign-contract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intakeId: intake.id, signedName: signedName.trim() }),
+    });
+
+    // Create invoice (keep client-side for now as backup)
     await supabase.from("invoices").insert({
       client_name: `${intake.first_name} ${intake.last_name}`.trim(),
       company: intake.business_name || null,
