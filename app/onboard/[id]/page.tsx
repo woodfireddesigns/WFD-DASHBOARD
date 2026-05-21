@@ -124,7 +124,7 @@ export default function ContractPage() {
       amount: intake.package_price,
       status: "draft",
       line_items: [{ description: PACKAGE_LABELS[intake.package as string] ?? intake.package, qty: 1, rate: intake.package_price, total: intake.package_price }],
-      notes: `Signed by ${signedName.trim()} on ${new Date(signedAt).toLocaleDateString()}`,
+      notes: `Signed by ${signedName.trim()} on ${new Date().toLocaleDateString()}`,
     });
 
     setSigned(true);
