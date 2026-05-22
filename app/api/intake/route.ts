@@ -9,7 +9,7 @@ const supabase = createClient(
 
 const PACKAGE_PRICES: Record<string, number> = {
   starter_site: 1200, full_website: 2400, brand_and_site: 4200, test_package: 19,
-  spark_identity: 1200, ignite_brand: 2800, forge_identity: 4800,
+  spark_identity: 1800, ignite_brand: 3500, forge_identity: 6500,
   packaging_single: 1200, packaging_system: 2800,
   photo_starter: 800, photo_pro: 1500, photo_campaign: 2800,
   merch_single: 800, merch_line: 1800,
