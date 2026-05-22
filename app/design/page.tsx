@@ -345,7 +345,7 @@ function ScopePanel({ answers }: { answers: Answers }) {
 
 // ── Questions ─────────────────────────────────────────────────────────────────
 
-type QType = "text_fields" | "textarea" | "single_select" | "multi_select" | "package_select" | "addon_select";
+type QType = "text_fields" | "textarea" | "single_select" | "multi_select" | "package_select" | "addon_select" | "divider";
 
 interface Field { key: string; label: string; required?: boolean; placeholder?: string }
 interface Option { value: string; label: string; subtext?: string; badge?: string }
@@ -361,11 +361,13 @@ const isPhoto = (a: Answers) => ["photo_starter","photo_pro","photo_campaign"].i
 const isMerch = (a: Answers) => ["merch_single","merch_line"].includes(a.package as string);
 
 const QUESTIONS: Question[] = [
+
+  // ── PART 1: SCOPE ────────────────────────────────────────────────────────────
   {
     id: "contact",
     type: "text_fields",
     question: "Let's build your scope.",
-    subtext: "Takes about 3 minutes. Your project brief builds live as you answer.",
+    subtext: "This takes about 8 minutes total. Your project brief builds live on the right as you answer.",
     fields: [
       { key: "first_name", label: "First Name", required: true },
       { key: "last_name", label: "Last Name", required: true },
@@ -397,10 +399,10 @@ const QUESTIONS: Question[] = [
     id: "addons",
     type: "addon_select",
     question: "Anything you'd like to add on?",
-    subtext: "Stack services together for a cohesive result — one project, one kick-off, one creative direction.",
+    subtext: "Stack services for a cohesive result — one project, one kick-off, one creative direction.",
     showIf: (a) => !!a.package,
   },
-  // ── Brand questions ──
+  // ── Brand scope ──
   {
     id: "brand_origin",
     type: "single_select",
@@ -413,42 +415,44 @@ const QUESTIONS: Question[] = [
     showIf: isBrand,
   },
   {
-    id: "brand_industry",
-    type: "single_select",
-    question: "What industry are you in?",
-    options: [
-      { value: "Trades / contractor", label: "Trades / contractor" },
-      { value: "Food & beverage / hospitality", label: "Food & beverage / hospitality" },
-      { value: "Ecommerce / product brand", label: "Ecommerce / product brand" },
-      { value: "Health, wellness & fitness", label: "Health, wellness & fitness" },
-      { value: "Apparel & fashion", label: "Apparel & fashion" },
-      { value: "Professional services", label: "Professional services" },
-      { value: "Tech & software", label: "Tech & software" },
-      { value: "Other", label: "Other" },
-    ],
-    showIf: isBrand,
-  },
-  {
     id: "brand_deliverables",
     type: "multi_select",
-    question: "Which brand deliverables matter most to you?",
+    question: "Which deliverables matter most to you?",
     subtext: "Helps us prioritize within your package.",
     items: BRAND_DELIVERABLE_OPTIONS,
     showIf: isBrand,
   },
-  {
-    id: "brand_competitors",
-    type: "textarea",
-    question: "List 2–3 brands or competitors you admire.",
-    subtext: "Tell us what you like about them — the look, the feel, the vibe. URLs or names work.",
-    showIf: isBrand,
-  },
-  // ── Packaging questions ──
+  // ── Packaging scope ──
   {
     id: "packaging_product_type",
     type: "single_select",
     question: "What type of product are we designing packaging for?",
     options: PRODUCT_TYPE_OPTIONS.map(v => ({ value: v, label: v })),
+    showIf: (a) => isPackaging(a) || ((a.addons as string[]) ?? []).some(x => x.startsWith("packaging")),
+  },
+  {
+    id: "packaging_retail_context",
+    type: "single_select",
+    question: "Where will this product be sold?",
+    options: [
+      { value: "Retail shelf (grocery, specialty, etc.)", label: "Retail shelf (grocery, specialty, etc.)" },
+      { value: "Online only (ecommerce, DTC)", label: "Online only (ecommerce, DTC)" },
+      { value: "Amazon", label: "Amazon" },
+      { value: "Both retail and online", label: "Both retail and online" },
+    ],
+    showIf: (a) => isPackaging(a) || ((a.addons as string[]) ?? []).some(x => x.startsWith("packaging")),
+  },
+  {
+    id: "packaging_price_point",
+    type: "single_select",
+    question: "What's the price point of your product?",
+    subtext: "Shapes the design positioning — budget, mid, or premium.",
+    options: [
+      { value: "Budget — competing on price", label: "Budget — competing on price" },
+      { value: "Mid-market — quality at fair price", label: "Mid-market — quality at fair price" },
+      { value: "Premium — higher price, higher perceived value", label: "Premium — higher price, higher perceived value" },
+      { value: "Luxury — price is a feature", label: "Luxury — price is a feature" },
+    ],
     showIf: (a) => isPackaging(a) || ((a.addons as string[]) ?? []).some(x => x.startsWith("packaging")),
   },
   {
@@ -463,12 +467,25 @@ const QUESTIONS: Question[] = [
     ],
     showIf: (a) => isPackaging(a) || ((a.addons as string[]) ?? []).some(x => x.startsWith("packaging")),
   },
-  // ── Photography questions ──
+  // ── Photography scope ──
   {
     id: "photo_product_type",
     type: "single_select",
     question: "What are we shooting?",
     options: PRODUCT_TYPE_OPTIONS.map(v => ({ value: v, label: v })),
+    showIf: (a) => isPhoto(a) || ((a.addons as string[]) ?? []).some(x => x.startsWith("photo")),
+  },
+  {
+    id: "photo_primary_platform",
+    type: "single_select",
+    question: "Where will these images be used most?",
+    options: [
+      { value: "Instagram / social media", label: "Instagram / social media" },
+      { value: "Amazon / ecommerce listings", label: "Amazon / ecommerce listings" },
+      { value: "Website hero and product pages", label: "Website hero and product pages" },
+      { value: "Paid ads (Meta, Google)", label: "Paid ads (Meta, Google)" },
+      { value: "All of the above", label: "All of the above" },
+    ],
     showIf: (a) => isPhoto(a) || ((a.addons as string[]) ?? []).some(x => x.startsWith("photo")),
   },
   {
@@ -479,19 +496,7 @@ const QUESTIONS: Question[] = [
     items: SHOOT_STYLE_OPTIONS,
     showIf: (a) => isPhoto(a) || ((a.addons as string[]) ?? []).some(x => x.startsWith("photo")),
   },
-  {
-    id: "photo_existing_brand",
-    type: "single_select",
-    question: "Do you have existing brand assets for us to match?",
-    subtext: "Colors, fonts, logo — we'll style the photography to your brand.",
-    options: [
-      { value: "Yes — I'll send everything", label: "Yes — I'll send everything" },
-      { value: "Partial — I have some assets", label: "Partial — I have some assets" },
-      { value: "No — shoot as a standalone", label: "No — shoot as a standalone" },
-    ],
-    showIf: (a) => isPhoto(a) || ((a.addons as string[]) ?? []).some(x => x.startsWith("photo")),
-  },
-  // ── Merch questions ──
+  // ── Merch scope ──
   {
     id: "merch_items",
     type: "multi_select",
@@ -511,32 +516,183 @@ const QUESTIONS: Question[] = [
     ],
     showIf: (a) => isMerch(a) || ((a.addons as string[]) ?? []).some(x => x.startsWith("merch")),
   },
-  // ── Universal ──
+
+  // ── DIVIDER: CREATIVE BRIEF ──────────────────────────────────────────────────
+  {
+    id: "divider_brief",
+    type: "divider",
+    question: "Now let's build your creative brief.",
+    subtext: "Your scope is locked in. The next section is where we go deep — business context, audience, competitive landscape, and creative direction. This is what separates a great project from an average one.",
+  },
+
+  // ── Business context ──
+  {
+    id: "elevator_pitch",
+    type: "textarea",
+    question: "Describe your business in 2–3 sentences.",
+    subtext: "What you do, who you serve, and why it matters. Your elevator pitch. Be direct.",
+  },
+  {
+    id: "business_stage",
+    type: "single_select",
+    question: "Where are you in the business journey?",
+    options: [
+      { value: "Pre-launch — building before we go live", label: "Pre-launch — building before we go live" },
+      { value: "Early stage — under 1 year, finding our footing", label: "Early stage — under 1 year, finding our footing" },
+      { value: "Growing — 1–3 years, gaining momentum", label: "Growing — 1–3 years, gaining momentum" },
+      { value: "Established — 3+ years, leveling up the brand", label: "Established — 3+ years, leveling up the brand" },
+    ],
+  },
+  {
+    id: "business_goal",
+    type: "single_select",
+    question: "What's your biggest goal right now?",
+    subtext: "The one thing that would move the needle most.",
+    options: [
+      { value: "Build brand awareness and recognition", label: "Build brand awareness and recognition" },
+      { value: "Drive more direct sales or leads", label: "Drive more direct sales or leads" },
+      { value: "Launch a new product or product line", label: "Launch a new product or product line" },
+      { value: "Enter a new market or distribution channel", label: "Enter a new market or distribution channel" },
+      { value: "Rebrand to better reflect where we are now", label: "Rebrand to better reflect where we are now" },
+      { value: "Attract investors or retail buyers", label: "Attract investors or retail buyers" },
+    ],
+  },
+  {
+    id: "unfair_advantage",
+    type: "textarea",
+    question: "What do you do better than anyone else?",
+    subtext: "Your unfair advantage. The thing that makes a customer choose you over every other option. Be honest and specific — this becomes the backbone of the creative.",
+  },
+
+  // ── Audience ──
+  {
+    id: "ideal_customer",
+    type: "textarea",
+    question: "Describe your ideal customer in detail.",
+    subtext: "Age, lifestyle, values, where they live, what they care about, what problems they have. The more specific, the better the creative brief.",
+  },
+  {
+    id: "customer_values",
+    type: "multi_select",
+    question: "What does your customer value most when buying?",
+    subtext: "Pick the top 3.",
+    items: ["Price / value", "Quality & craftsmanship", "Brand story & authenticity", "Sustainability & ethics", "Status & prestige", "Community & belonging", "Innovation & novelty", "Convenience & speed"],
+  },
+  {
+    id: "customer_online",
+    type: "multi_select",
+    question: "Where does your customer spend time online?",
+    items: ["Instagram", "TikTok", "YouTube", "Pinterest", "Facebook", "LinkedIn", "Amazon", "Podcasts", "Email newsletters"],
+  },
+
+  // ── Competitive landscape ──
+  {
+    id: "top_competitors",
+    type: "textarea",
+    question: "Who are your top 3 competitors?",
+    subtext: "Name them, link them, describe them. We'll research them — but knowing who you're up against directly shapes how we position you.",
+  },
+  {
+    id: "competitor_differentiation",
+    type: "textarea",
+    question: "How does your brand stand out from those competitors?",
+    subtext: "Don't just say 'better quality' — dig in. What specifically makes your product, service, or experience different or superior?",
+  },
+  {
+    id: "admired_brands",
+    type: "textarea",
+    question: "Are there brands you admire outside your industry?",
+    subtext: "Brands whose look, feel, or positioning you want to draw from — even if they're completely different from your category. Tell us what resonates and why.",
+  },
+
+  // ── Brand personality ──
+  {
+    id: "brand_person",
+    type: "textarea",
+    question: "If your brand were a person, describe them.",
+    subtext: "How old are they? How do they dress? How do they talk — formal or casual, loud or quiet, witty or serious? What do they care about? What would they never say?",
+  },
+  {
+    id: "brand_not",
+    type: "textarea",
+    question: "What brands do you definitely NOT want to look like?",
+    subtext: "Just as important as what you like. Competitors, adjacent brands, anything that feels wrong. Tell us what to avoid and why.",
+  },
+  {
+    id: "brand_industry",
+    type: "single_select",
+    question: "What industry are you in?",
+    options: [
+      { value: "Food & beverage / CPG", label: "Food & beverage / CPG" },
+      { value: "Health, wellness & supplements", label: "Health, wellness & supplements" },
+      { value: "Apparel & fashion", label: "Apparel & fashion" },
+      { value: "Cannabis / hemp", label: "Cannabis / hemp" },
+      { value: "Beauty & personal care", label: "Beauty & personal care" },
+      { value: "Sports & outdoor", label: "Sports & outdoor" },
+      { value: "Trades / contractor", label: "Trades / contractor" },
+      { value: "Professional services", label: "Professional services" },
+      { value: "Tech & software", label: "Tech & software" },
+      { value: "Ecommerce / DTC brand", label: "Ecommerce / DTC brand" },
+      { value: "Other", label: "Other" },
+    ],
+  },
+
+  // ── Creative direction ──
   {
     id: "style_direction",
     type: "multi_select",
     question: "What style direction feels right?",
-    subtext: "Pick up to 3. This shapes the creative direction.",
+    subtext: "Pick up to 3.",
     items: STYLE_OPTIONS,
   },
   {
     id: "brand_words",
     type: "textarea",
-    question: "Describe your brand in 3–5 words.",
-    subtext: "How do you want people to feel when they encounter your brand? Bold, trustworthy, warm, premium, rebellious — be specific.",
+    question: "Give us 5 words that must be true about the creative.",
+    subtext: "Not aspirational — true. If someone looked at the finished work, these are the 5 words they'd use to describe it. Bold. Warm. Premium. Human. Unexpected. Whatever fits.",
   },
   {
     id: "color_prefs",
     type: "textarea",
-    question: "Any color preferences or existing brand colors?",
-    subtext: "Hex codes, Pantones, or just describe the vibe — 'dark, moody navy' or 'bright citrus energy' both work.",
+    question: "Colors you love — and colors to avoid.",
+    subtext: "Both matter equally. Hex codes, Pantones, or descriptions all work. 'Nothing corporate blue' is a perfectly valid answer.",
   },
+  {
+    id: "visual_references",
+    type: "textarea",
+    question: "Drop any visual references or inspiration.",
+    subtext: "Pinterest boards, Instagram accounts, specific brands, products you've seen on a shelf — anything that's triggered a 'yes, that' reaction. Links or descriptions both work.",
+  },
+  {
+    id: "off_brand",
+    type: "textarea",
+    question: "What's definitively off-brand or off-limits?",
+    subtext: "Styles, colors, treatments, tones, or vibes that are a hard no. The more specific, the better — 'no gradients' or 'nothing looks like a MLM brand' gives us real guardrails.",
+  },
+
+  // ── Assets ──
   {
     id: "brand_assets",
     type: "textarea",
-    question: "Do you have any existing assets to share?",
-    subtext: "Logos, brand files, product photos, packaging samples. Drop a Google Drive / Dropbox link, or note what you have.",
+    question: "What existing assets can you share?",
+    subtext: "Logos, brand guidelines, product photos, packaging, past design files. Drop a Google Drive / Dropbox link, or note what you have. You can also send after submitting.",
   },
+
+  // ── Success criteria ──
+  {
+    id: "success_definition",
+    type: "textarea",
+    question: "What does a home run look like to you?",
+    subtext: "When you see the final work and say 'this is exactly right' — what does that mean? What specific feeling, reaction, or outcome tells you we nailed it?",
+  },
+  {
+    id: "hard_requirements",
+    type: "textarea",
+    question: "Any hard requirements or must-avoids?",
+    subtext: "Things that aren't optional — legal, brand, or business constraints. Specific colors that must be used, words that can't appear, formats that are mandatory, etc.",
+  },
+
+  // ── Timeline ──
   {
     id: "launch_timeline",
     type: "single_select",
@@ -549,10 +705,20 @@ const QUESTIONS: Question[] = [
     ],
   },
   {
+    id: "hard_deadline",
+    type: "single_select",
+    question: "Is there a hard external deadline?",
+    subtext: "A launch event, trade show, product drop, or investor meeting that can't move.",
+    options: [
+      { value: "No hard deadline — just sooner is better", label: "No hard deadline — just sooner is better" },
+      { value: "Yes — I'll share the date in notes below", label: "Yes — I'll share the date in notes below" },
+    ],
+  },
+  {
     id: "extra_notes",
     type: "textarea",
-    question: "Anything else we should know?",
-    subtext: "Hard deadlines, specific concerns, things you've loved or hated from past designers. The more detail, the better.",
+    question: "Anything else we should know before we start?",
+    subtext: "Past experiences with designers (good or bad), budget context, internal stakeholders who'll review, anything that shapes how this project will run.",
   },
 ];
 
@@ -561,6 +727,7 @@ const STORAGE_KEY = "wfd_design_progress";
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 function canAdvanceQ(q: Question, answers: Answers): boolean {
+  if (q.type === "divider") return true;
   if (q.type === "addon_select") return true;
   if (q.type === "text_fields") {
     const vals = (answers[q.id] as unknown as Record<string, string>) ?? {};
@@ -785,7 +952,19 @@ export default function DesignIntakePage() {
             <h2 className="q-headline" style={{ fontFamily: "var(--font-d)", fontSize: 28, color: "var(--text-primary)", lineHeight: 1.15, marginBottom: q.subtext ? 10 : 28 }}>
               {q.question}
             </h2>
-            {q.subtext && <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.65, marginBottom: 24 }}>{q.subtext}</p>}
+            {q.type !== "divider" && q.subtext && <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.65, marginBottom: 24 }}>{q.subtext}</p>}
+
+            {/* Divider */}
+            {q.type === "divider" && (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
+                  <div style={{ flex: 1, height: 1, background: "var(--accent)" }} />
+                  <span style={{ fontSize: 10, fontWeight: 600, color: "var(--accent)", letterSpacing: "0.14em", textTransform: "uppercase", whiteSpace: "nowrap" }}>Part 2 of 2</span>
+                  <div style={{ flex: 1, height: 1, background: "var(--accent)" }} />
+                </div>
+                <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.75 }}>{q.subtext}</p>
+              </div>
+            )}
 
             {/* Text fields */}
             {q.type === "text_fields" && (
@@ -907,7 +1086,7 @@ export default function DesignIntakePage() {
           <div className="controls-bar" style={{ display: "flex", gap: 10, marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--border)" }}>
             {stepIndex > 0 && <button className="btn-ghost" onClick={back}>← Back</button>}
             <button className="btn-primary" onClick={next} disabled={!canAdvanceQ(q, answers)} style={{ marginLeft: stepIndex > 0 ? 0 : "auto" }}>
-              {stepIndex >= visibleQuestions.length - 1 ? "Review & Submit →" : "Next →"}
+              {stepIndex >= visibleQuestions.length - 1 ? "Review & Submit →" : q.type === "divider" ? "Start the Creative Brief →" : "Next →"}
             </button>
           </div>
         </div>
