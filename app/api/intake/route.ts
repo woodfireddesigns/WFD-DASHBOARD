@@ -8,10 +8,11 @@ const supabase = createClient(
 );
 
 const PACKAGE_PRICES: Record<string, number> = {
-  starter_site: 1200,
-  full_website: 2400,
-  brand_and_site: 4200,
-  test_package: 19,
+  starter_site: 1200, full_website: 2400, brand_and_site: 4200, test_package: 19,
+  spark_identity: 1200, ignite_brand: 2800, forge_identity: 4800,
+  packaging_single: 1200, packaging_system: 2800,
+  photo_starter: 800, photo_pro: 1500, photo_campaign: 2800,
+  merch_single: 800, merch_line: 1800,
 };
 const INTEGRATION_PRICES: Record<string, number> = {
   "Online booking system": 400,
@@ -114,10 +115,11 @@ export async function POST(req: NextRequest) {
 
     // 4. Create draft project
     const PACKAGE_LABELS: Record<string, string> = {
-      starter_site: "Starter Site",
-      full_website: "Full Website",
-      brand_and_site: "Brand + Site",
-      test_package: "Test Package",
+      starter_site: "Starter Site", full_website: "Full Website", brand_and_site: "Brand + Site", test_package: "Test Package",
+      spark_identity: "Spark Identity", ignite_brand: "Ignite Brand System", forge_identity: "Forge Complete Identity",
+      packaging_single: "Packaging — Single SKU", packaging_system: "Packaging — Multi-SKU System",
+      photo_starter: "AI Photography — Starter", photo_pro: "AI Photography — Pro", photo_campaign: "AI Photography — Campaign",
+      merch_single: "Merch Design — Single Item", merch_line: "Merch Design — Full Line",
     };
 
     const { data: project } = await supabase

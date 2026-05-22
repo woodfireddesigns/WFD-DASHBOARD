@@ -1,8 +1,11 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const TO = "michael@woodfireddesigns.com";
 const FROM = "WFD Notifications <notifications@woodfireddesigns.com>";
+
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY ?? "placeholder");
+}
 
 const fmt = (n: number) => "$" + n.toLocaleString();
 
@@ -72,7 +75,7 @@ export async function sendQuestionnaireStarted(data: {
     .map(([k, v]) => row(k, v))
     .join("");
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: TO,
     subject: `New Intake — ${data.business || data.name} (${data.package})`,
@@ -113,7 +116,7 @@ export async function sendContractSigned(data: {
 }) {
   const portalUrl = `https://wfd-dashboard.vercel.app/portal/${data.portalToken}`;
   const deposit = Math.round(data.total * 0.5);
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: TO,
     subject: `Contract Signed — ${data.business || data.name}`,
@@ -146,7 +149,7 @@ export async function sendInvoicePaid(data: {
   portalToken: string;
 }) {
   const portalUrl = `https://wfd-dashboard.vercel.app/portal/${data.portalToken}`;
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: TO,
     subject: `Payment Received — ${fmt(data.amount)} from ${data.business || data.name}`,

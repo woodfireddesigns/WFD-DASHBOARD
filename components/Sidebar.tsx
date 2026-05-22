@@ -15,7 +15,8 @@ const nav = [
   { label: "Invoices",   href: "/invoices",   icon: FileText },
   { label: "Onboarding", href: "/onboarding", icon: FileSignature },
   { label: "Proposals",  href: "/proposal",   icon: Zap },
-  { label: "Intake Form", href: "/onboard",   icon: ClipboardList },
+  { label: "UX Intake Form",     href: "/onboard", icon: ClipboardList },
+  { label: "Design Intake Form", href: "/design",  icon: ClipboardList },
 ];
 
 export default function Sidebar() {
