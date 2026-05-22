@@ -561,7 +561,7 @@ const QUESTIONS: Question[] = [
     id: "unfair_advantage",
     type: "textarea",
     question: "What do you do better than anyone else?",
-    subtext: "Your unfair advantage. The thing that makes a customer choose you over every other option. Be honest and specific — this becomes the backbone of the creative.",
+    subtext: "Your unfair advantage. The thing that makes a customer choose you over every other option. Even a sentence or two is enough. Skip if you are still figuring it out.",
   },
 
   // ── Audience ──
@@ -569,7 +569,7 @@ const QUESTIONS: Question[] = [
     id: "ideal_customer",
     type: "textarea",
     question: "Describe your ideal customer in detail.",
-    subtext: "Age, lifestyle, values, where they live, what they care about, what problems they have. The more specific, the better the creative brief.",
+    subtext: "A few sentences is plenty. Skip if you would rather talk it through on a call.",
   },
   {
     id: "customer_values",
@@ -596,7 +596,7 @@ const QUESTIONS: Question[] = [
     id: "competitor_differentiation",
     type: "textarea",
     question: "How does your brand stand out from those competitors?",
-    subtext: "Don't just say 'better quality' — dig in. What specifically makes your product, service, or experience different or superior?",
+    subtext: "Even one clear differentiator helps. Skip if you are still working this out.",
   },
   {
     id: "admired_brands",
