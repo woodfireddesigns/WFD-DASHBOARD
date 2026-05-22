@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Wood Fired Designs internal operations dashboard — projects, pipeline, clients, invoices, and onboarding.",
+  robots: { index: false, follow: false },
+};
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
