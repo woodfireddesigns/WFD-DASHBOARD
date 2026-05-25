@@ -150,6 +150,7 @@ export default function LeadsPage() {
   const [sortDir, setSortDir]       = useState<SortDir>("desc");
   const [selected, setSelected]     = useState<Set<string>>(new Set());
   const [actionMenu, setActionMenu] = useState<string | null>(null);
+  const [sending, setSending]       = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLInputElement>(null);
 
   // ── Data loading ────────────────────────────────────────────────────────────
@@ -267,22 +268,23 @@ export default function LeadsPage() {
   }, []);
 
   const sendStep = useCallback(async (lead: RoofingLead) => {
-    if (!lead.email) return;
-    const step = (lead.sequence_step ?? 0) + 1;
-    const isComplete = step >= 3;
-    const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + (step === 1 ? 3 : 2));
-    nextDate.setHours(12, 0, 0, 0);
-    const { subject, body } = buildEmail(lead, step);
-    await updateLead(lead.id, {
-      sequence_status: isComplete ? "completed" : "active",
-      sequence_step: step,
-      last_outreach_at: new Date().toISOString(),
-      next_outreach_at: isComplete ? null : nextDate.toISOString(),
-      outreach_sent: true,
-    } as Partial<RoofingLead>);
-    window.open(`mailto:${lead.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, "_blank");
-  }, [updateLead]);
+    if (!lead.email || !lead.slug) return;
+    setSending((p) => new Set(p).add(lead.id));
+    try {
+      const res = await fetch("/api/leads/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId: lead.id }),
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        alert(`Send failed: ${error}`);
+      }
+      // Real-time subscription will update the row automatically
+    } finally {
+      setSending((p) => { const n = new Set(p); n.delete(lead.id); return n; });
+    }
+  }, []);
 
   const resetSequence = useCallback(async (lead: RoofingLead) => {
     await updateLead(lead.id, { sequence_status: "pending", sequence_step: 0, last_outreach_at: null, next_outreach_at: null, outreach_sent: false } as Partial<RoofingLead>);
@@ -667,18 +669,14 @@ export default function LeadsPage() {
 
                         {/* Primary CTA */}
                         {(!lead.sequence_status || lead.sequence_status === "none" || lead.sequence_status === "pending") ? (
-                          <button onClick={() => sendStep(lead)} disabled={!lead.email || !lead.slug}
-                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", fontSize: 12, fontWeight: 600, backgroundColor: "#FF6B2B", color: "#fff", border: "none", borderRadius: 6, cursor: (!lead.email || !lead.slug) ? "not-allowed" : "pointer", opacity: (!lead.email || !lead.slug) ? 0.3 : 1, transition: "opacity 0.1s" }}
-                            onMouseEnter={(e) => { if (lead.email && lead.slug) (e.currentTarget as HTMLElement).style.opacity = "0.85"; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = (!lead.email || !lead.slug) ? "0.3" : "1"; }}>
-                            <Zap size={10} /> Send 1
+                          <button onClick={() => sendStep(lead)} disabled={!lead.email || !lead.slug || sending.has(lead.id)}
+                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", fontSize: 12, fontWeight: 600, backgroundColor: "#FF6B2B", color: "#fff", border: "none", borderRadius: 6, cursor: (!lead.email || !lead.slug) ? "not-allowed" : "pointer", opacity: (!lead.email || !lead.slug) ? 0.3 : 1, transition: "opacity 0.1s", minWidth: 68 }}>
+                            {sending.has(lead.id) ? "Sending…" : <><Zap size={10} /> Send 1</>}
                           </button>
                         ) : lead.sequence_status === "active" && step < 3 ? (
-                          <button onClick={() => sendStep(lead)}
-                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", fontSize: 12, fontWeight: 600, backgroundColor: "#1E5FAA", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}
-                            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-                            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}>
-                            <Mail size={10} /> Send {step + 1}
+                          <button onClick={() => sendStep(lead)} disabled={sending.has(lead.id)}
+                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", fontSize: 12, fontWeight: 600, backgroundColor: "#1E5FAA", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", minWidth: 68 }}>
+                            {sending.has(lead.id) ? "Sending…" : <><Mail size={10} /> Send {step + 1}</>}
                           </button>
                         ) : null}
                       </div>
