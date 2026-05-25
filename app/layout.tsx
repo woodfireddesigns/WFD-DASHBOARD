@@ -11,6 +11,7 @@ export const metadata: Metadata = {
     icon: "/favicon.png",
     apple: "/favicon.png",
     shortcut: "/favicon.png",
+    other: [{ rel: "icon", url: "/favicon.png" }],
   },
   openGraph: {
     siteName: "Wood Fired Designs",
