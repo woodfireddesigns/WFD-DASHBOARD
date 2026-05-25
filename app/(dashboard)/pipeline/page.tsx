@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { supabase, TradesLead, InboundLead, TradesStage, InboundStage } from "@/lib/supabase";
-import { MapPin, Mail, RefreshCw, Plus, X, ChevronDown, Loader2 } from "lucide-react";
+import { MapPin, Mail, RefreshCw, Plus, X, ChevronDown, Loader2, Pencil } from "lucide-react";
 
 // ── Stage configs ─────────────────────────────────────────────────────────────
 
@@ -101,13 +101,16 @@ function MoveDropdown({ btnRef, open, stages, onSelect }: {
 
 // ── Trades card ───────────────────────────────────────────────────────────────
 
-function TradesCard({ lead, stages, onMove, onDragStart }: {
+function TradesCard({ lead, stages, onMove, onDragStart, onEdited }: {
   lead: TradesLead;
   stages: typeof TRADES_STAGES;
   onMove: (id: string, s: TradesStage) => void;
   onDragStart: (id: string, type: "trades") => void;
+  onEdited: (updated: TradesLead) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const g = GRADE_BG[lead.grade] ?? GRADE_BG.ungraded;
 
@@ -122,11 +125,19 @@ function TradesCard({ lead, stages, onMove, onDragStart }: {
     <div
       draggable
       onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(lead.id, "trades"); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{ ...S.card, cursor: "grab" }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
         <p style={{ fontSize: 12.5, fontWeight: 600, color: "#1E1C1A", lineHeight: 1.3 }}>{lead.business_name ?? "—"}</p>
-        <span style={S.pill(g.bg, g.color)}>{lead.grade}</span>
+        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+          <button onClick={() => setEditing(true)} style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.15s", background: "none", border: "none", cursor: "pointer", color: "#A09890", padding: 2, display: "flex" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#FF6B2B")} onMouseLeave={(e) => (e.currentTarget.style.color = "#A09890")}>
+            <Pencil size={11} />
+          </button>
+          <span style={S.pill(g.bg, g.color)}>{lead.grade}</span>
+        </div>
       </div>
       {(lead.city || lead.state) && (
         <p style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#A09890", marginBottom: 8 }}>
@@ -158,19 +169,23 @@ function TradesCard({ lead, stages, onMove, onDragStart }: {
         btnRef={btnRef} open={open} stages={stages}
         onSelect={(id) => { onMove(lead.id, id as TradesStage); setOpen(false); }}
       />
+      {editing && <EditTradesModal lead={lead} onClose={() => setEditing(false)} onSaved={(u) => { onEdited(u); setEditing(false); }} />}
     </div>
   );
 }
 
 // ── Inbound card ──────────────────────────────────────────────────────────────
 
-function InboundCard({ lead, stages, onMove, onDragStart }: {
+function InboundCard({ lead, stages, onMove, onDragStart, onEdited }: {
   lead: InboundLead;
   stages: typeof INBOUND_STAGES;
   onMove: (id: string, s: InboundStage) => void;
   onDragStart: (id: string, type: "inbound") => void;
+  onEdited: (updated: InboundLead) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const sourceColors: Record<string, { bg: string; color: string }> = {
     referral:  { bg: "#EEF4FF", color: "#1E5FAA" },
@@ -193,11 +208,19 @@ function InboundCard({ lead, stages, onMove, onDragStart }: {
     <div
       draggable
       onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(lead.id, "inbound"); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{ ...S.card, cursor: "grab" }}
     >
-      <p style={{ fontSize: 12.5, fontWeight: 600, color: "#1E1C1A", lineHeight: 1.3, marginBottom: 4 }}>
-        {lead.business_name || lead.name || "—"}
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6, marginBottom: 4 }}>
+        <p style={{ fontSize: 12.5, fontWeight: 600, color: "#1E1C1A", lineHeight: 1.3 }}>
+          {lead.business_name || lead.name || "—"}
+        </p>
+        <button onClick={() => setEditing(true)} style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.15s", background: "none", border: "none", cursor: "pointer", color: "#A09890", padding: 2, display: "flex", flexShrink: 0 }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#FF6B2B")} onMouseLeave={(e) => (e.currentTarget.style.color = "#A09890")}>
+          <Pencil size={11} />
+        </button>
+      </div>
       {lead.name && lead.business_name && (
         <p style={{ fontSize: 11, color: "#A09890", marginBottom: 6 }}>{lead.name}</p>
       )}
@@ -221,6 +244,7 @@ function InboundCard({ lead, stages, onMove, onDragStart }: {
         btnRef={btnRef} open={open} stages={stages}
         onSelect={(id) => { onMove(lead.id, id as InboundStage); setOpen(false); }}
       />
+      {editing && <EditInboundModal lead={lead} onClose={() => setEditing(false)} onSaved={(u) => { onEdited(u); setEditing(false); }} />}
     </div>
   );
 }
@@ -274,6 +298,120 @@ function AddInboundModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
         <button onClick={submit} disabled={saving}
           style={{ marginTop: 20, width: "100%", backgroundColor: "#FF6B2B", color: "#fff", border: "none", borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: saving ? 0.6 : 1 }}>
           {saving ? "Saving…" : "Add Lead"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Edit modals ───────────────────────────────────────────────────────────────
+
+const modalOverlay: React.CSSProperties = { position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(30,28,26,0.55)", backdropFilter: "blur(4px)" };
+const modalBox: React.CSSProperties = { backgroundColor: "#fff", borderRadius: 14, boxShadow: "0 20px 60px rgba(0,0,0,0.15)", width: "100%", maxWidth: 440, margin: "0 16px", padding: 24, maxHeight: "90vh", overflowY: "auto" };
+
+function FieldRow({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+  return (
+    <div>
+      <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>{label}</label>
+      {type === "textarea"
+        ? <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={3}
+            style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A", fontFamily: "Inter, sans-serif", resize: "vertical" }} />
+        : <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
+            style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A", fontFamily: "Inter, sans-serif" }} />
+      }
+    </div>
+  );
+}
+
+function EditTradesModal({ lead, onClose, onSaved }: { lead: TradesLead; onClose: () => void; onSaved: (updated: TradesLead) => void }) {
+  const [form, setForm] = useState({ business_name: lead.business_name ?? "", city: lead.city ?? "", state: lead.state ?? "", grade: lead.grade, email: lead.email ?? "", phone: lead.phone ?? "", notes: lead.notes ?? "" });
+  const [saving, setSaving] = useState(false);
+  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  async function save() {
+    setSaving(true);
+    const patch = { business_name: form.business_name || null, city: form.city || null, state: form.state || null, grade: form.grade as TradesLead["grade"], email: form.email || null, phone: form.phone || null, notes: form.notes || null };
+    await supabase.from("roofing_leads").update(patch).eq("id", lead.id);
+    onSaved({ ...lead, ...patch });
+    setSaving(false); onClose();
+  }
+
+  return (
+    <div style={modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={modalBox}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h2 className="font-display" style={{ fontSize: 18, color: "#1E1C1A" }}>Edit Lead</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#A09890" }}><X size={16} /></button>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <FieldRow label="Business Name" value={form.business_name} onChange={set("business_name")} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <FieldRow label="City" value={form.city} onChange={set("city")} />
+            <FieldRow label="State" value={form.state} onChange={set("state")} />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>Grade</label>
+            <select value={form.grade} onChange={(e) => setForm((f) => ({ ...f, grade: e.target.value as TradesLead["grade"] }))}
+              style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A" }}>
+              {["A","B","C","ungraded"].map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </div>
+          <FieldRow label="Email" value={form.email} onChange={set("email")} type="email" />
+          <FieldRow label="Phone" value={form.phone} onChange={set("phone")} />
+          <FieldRow label="Notes" value={form.notes} onChange={set("notes")} type="textarea" />
+        </div>
+        <button onClick={save} disabled={saving}
+          style={{ marginTop: 20, width: "100%", backgroundColor: "#FF6B2B", color: "#fff", border: "none", borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: saving ? 0.6 : 1 }}>
+          {saving ? "Saving…" : "Save Changes"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EditInboundModal({ lead, onClose, onSaved }: { lead: InboundLead; onClose: () => void; onSaved: (updated: InboundLead) => void }) {
+  const [form, setForm] = useState({ name: lead.name ?? "", business_name: lead.business_name ?? "", email: lead.email ?? "", phone: lead.phone ?? "", source: lead.source ?? "other", referred_by: lead.referred_by ?? "", budget_estimate: lead.budget_estimate ?? "", city: lead.city ?? "", state: lead.state ?? "", notes: lead.notes ?? "" });
+  const [saving, setSaving] = useState(false);
+  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  async function save() {
+    setSaving(true);
+    const patch = { name: form.name || null, business_name: form.business_name || null, email: form.email || null, phone: form.phone || null, source: form.source || null, referred_by: form.referred_by || null, budget_estimate: form.budget_estimate || null, city: form.city || null, state: form.state || null, notes: form.notes || null };
+    await supabase.from("inbound_leads").update(patch).eq("id", lead.id);
+    onSaved({ ...lead, ...patch });
+    setSaving(false); onClose();
+  }
+
+  return (
+    <div style={modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={modalBox}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h2 className="font-display" style={{ fontSize: 18, color: "#1E1C1A" }}>Edit Lead</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#A09890" }}><X size={16} /></button>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <FieldRow label="Contact Name" value={form.name} onChange={set("name")} />
+          <FieldRow label="Business Name" value={form.business_name} onChange={set("business_name")} />
+          <FieldRow label="Email" value={form.email} onChange={set("email")} type="email" />
+          <FieldRow label="Phone" value={form.phone} onChange={set("phone")} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <FieldRow label="City" value={form.city} onChange={set("city")} />
+            <FieldRow label="State" value={form.state} onChange={set("state")} />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>Source</label>
+            <select value={form.source} onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
+              style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A" }}>
+              {["referral","instagram","website","contra","cold_dm","other"].map(s => <option key={s} value={s}>{s.replace("_"," ")}</option>)}
+            </select>
+          </div>
+          <FieldRow label="Referred By" value={form.referred_by} onChange={set("referred_by")} />
+          <FieldRow label="Budget Estimate" value={form.budget_estimate} onChange={set("budget_estimate")} />
+          <FieldRow label="Notes" value={form.notes} onChange={set("notes")} type="textarea" />
+        </div>
+        <button onClick={save} disabled={saving}
+          style={{ marginTop: 20, width: "100%", backgroundColor: "#FF6B2B", color: "#fff", border: "none", borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: saving ? 0.6 : 1 }}>
+          {saving ? "Saving…" : "Save Changes"}
         </button>
       </div>
     </div>
@@ -426,7 +564,8 @@ export default function PipelinePage() {
                       ? <div style={{ border: "1px dashed #E8E2D8", borderRadius: 8, padding: "14px", fontSize: 11.5, color: "#C8C0B8", textAlign: "center" }}>Empty</div>
                       : tradesByStage(stage.id).map((l) => (
                           <TradesCard key={l.id} lead={l} stages={TRADES_STAGES} onMove={moveTradesLead}
-                            onDragStart={(id, type) => { dragRef.current = { id, type }; }} />
+                            onDragStart={(id, type) => { dragRef.current = { id, type }; }}
+                            onEdited={(u) => setTradesLeads((p) => p.map((x) => x.id === u.id ? u : x))} />
                         ))
                     }
                   </Column>
@@ -445,7 +584,8 @@ export default function PipelinePage() {
                       ? <div style={{ border: "1px dashed #E8E2D8", borderRadius: 8, padding: "14px", fontSize: 11.5, color: "#C8C0B8", textAlign: "center" }}>Empty</div>
                       : inboundByStage(stage.id).map((l) => (
                           <InboundCard key={l.id} lead={l} stages={INBOUND_STAGES} onMove={moveInboundLead}
-                            onDragStart={(id, type) => { dragRef.current = { id, type }; }} />
+                            onDragStart={(id, type) => { dragRef.current = { id, type }; }}
+                            onEdited={(u) => setInboundLeads((p) => p.map((x) => x.id === u.id ? u : x))} />
                         ))
                     }
                   </Column>
