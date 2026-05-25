@@ -52,13 +52,28 @@ function NewProjectModal({ clients, onClose, onCreated }: {
     value: "",
     notes: "",
   });
+  const [newClient, setNewClient] = useState({ name: "", email: "", phone: "" });
   const [saving, setSaving] = useState(false);
+  const isNewClient = form.client_id === "__new__";
 
   async function submit() {
-    if (!form.client_id || !form.name) return;
+    if (!form.name) return;
+    if (!isNewClient && !form.client_id) return;
     setSaving(true);
+
+    let clientId = form.client_id;
+
+    if (isNewClient) {
+      if (!newClient.name.trim()) { setSaving(false); return; }
+      const { data: created } = await supabase
+        .from("clients")
+        .insert({ name: newClient.name.trim(), email: newClient.email || null, phone: newClient.phone || null, is_active: true, mrr_status: "none", mrr_amount: 0, source: "other" })
+        .select().single();
+      clientId = created?.id ?? "";
+    }
+
     await supabase.from("projects").insert({
-      client_id: form.client_id,
+      client_id: clientId || null,
       name: form.name,
       type: form.type,
       status: form.status,
@@ -74,7 +89,7 @@ function NewProjectModal({ clients, onClose, onCreated }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2C2A28]/60 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <h2 className="headline text-[20px] text-[#2C2A28]">New Project</h2>
           <button onClick={onClose} className="text-[#B8AE9A] hover:text-[#6B5F50]"><X size={18} /></button>
@@ -92,8 +107,37 @@ function NewProjectModal({ clients, onClose, onCreated }: {
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
+              <option value="__new__">+ Add new client</option>
             </select>
           </div>
+
+          {/* Inline new client fields */}
+          {isNewClient && (
+            <div className="rounded-lg border border-[#FF6B2B]/30 bg-[#FFF8F5] p-3 space-y-2">
+              <p className="text-xs font-semibold text-[#FF6B2B] uppercase tracking-wide">New Client</p>
+              <div>
+                <label className="block text-xs font-medium text-[#6B5F50] mb-1">Name *</label>
+                <input value={newClient.name} onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+                  placeholder="Business or contact name"
+                  className="w-full text-sm border border-[#EAE4D8] rounded-lg px-3 py-2 outline-none focus:border-[#FF6B2B] bg-white text-[#2C2A28] placeholder-[#B8AE9A]" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-[#6B5F50] mb-1">Email</label>
+                  <input value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                    placeholder="email@example.com" type="email"
+                    className="w-full text-sm border border-[#EAE4D8] rounded-lg px-3 py-2 outline-none focus:border-[#FF6B2B] bg-white text-[#2C2A28] placeholder-[#B8AE9A]" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[#6B5F50] mb-1">Phone</label>
+                  <input value={newClient.phone} onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
+                    placeholder="(555) 000-0000"
+                    className="w-full text-sm border border-[#EAE4D8] rounded-lg px-3 py-2 outline-none focus:border-[#FF6B2B] bg-white text-[#2C2A28] placeholder-[#B8AE9A]" />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Name */}
           <div>
             <label className="block text-xs font-medium text-[#6B5F50] mb-1">Project Name *</label>
@@ -166,10 +210,10 @@ function NewProjectModal({ clients, onClose, onCreated }: {
         </div>
         <button
           onClick={submit}
-          disabled={saving || !form.client_id || !form.name}
+          disabled={saving || !form.name || (!form.client_id) || (isNewClient && !newClient.name.trim())}
           className="mt-5 w-full bg-[#FF6B2B] text-white font-semibold text-sm py-2.5 rounded-lg hover:bg-[#E85A1A] transition-colors disabled:opacity-40"
         >
-          {saving ? "Creating…" : "Create Project"}
+          {saving ? "Creating…" : isNewClient ? "Create Client & Project" : "Create Project"}
         </button>
       </div>
     </div>
