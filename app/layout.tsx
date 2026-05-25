@@ -8,10 +8,8 @@ export const metadata: Metadata = {
   },
   description: "Wood Fired Designs is a one-person brand studio built for businesses that mean business. Logo design, brand identity, websites, and campaign creative — built from scratch, delivered fast, owned by you.",
   icons: {
-    icon: "/favicon.png",
-    apple: "/favicon.png",
-    shortcut: "/favicon.png",
-    other: [{ rel: "icon", url: "/favicon.png" }],
+    icon: [{ url: "/favicon.png", sizes: "64x64", type: "image/png" }],
+    apple: [{ url: "/favicon.png", sizes: "64x64", type: "image/png" }],
   },
   openGraph: {
     siteName: "Wood Fired Designs",
