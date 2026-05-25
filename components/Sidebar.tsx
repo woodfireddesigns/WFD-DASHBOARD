@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CheckSquare, Kanban, FolderOpen,
-  Users, FileText, FileSignature, Zap, ClipboardList, Settings,
+  Users, FileText, FileSignature, Zap, ClipboardList, Settings, Target,
 } from "lucide-react";
 
 const nav = [
   { label: "Tasks",      href: "/tasks",      icon: CheckSquare },
   { label: "Pipeline",   href: "/pipeline",   icon: Kanban },
+  { label: "Leads",      href: "/leads",      icon: Target },
   { label: "Projects",   href: "/projects",   icon: FolderOpen },
   { label: "Clients",    href: "/clients",    icon: Users },
   { label: "Invoices",   href: "/invoices",   icon: FileText },
