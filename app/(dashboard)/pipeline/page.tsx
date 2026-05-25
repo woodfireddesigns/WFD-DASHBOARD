@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { supabase, TradesLead, InboundLead, TradesStage, InboundStage } from "@/lib/supabase";
 import { MapPin, Mail, RefreshCw, Plus, X, ChevronDown, Loader2 } from "lucide-react";
 
@@ -49,101 +50,128 @@ const S = {
   }),
 };
 
+// ── Shared fixed dropdown ─────────────────────────────────────────────────────
+
+function MoveDropdown({ btnRef, open, stages, onSelect }: {
+  btnRef: React.RefObject<HTMLButtonElement | null>;
+  open: boolean;
+  stages: { id: string; label: string; color: string }[];
+  onSelect: (id: string) => void;
+}) {
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+
+  useEffect(() => {
+    if (open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 4, left: r.left, width: r.width });
+    }
+  }, [open, btnRef]);
+
+  if (!open || !pos) return null;
+
+  return createPortal(
+    <div
+      style={{
+        position: "fixed", top: pos.top, left: pos.left, width: pos.width,
+        zIndex: 9999, backgroundColor: "#fff", border: "1px solid #E8E2D8",
+        borderRadius: 8, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", overflow: "hidden",
+      }}
+    >
+      {stages.map((s) => (
+        <button
+          key={s.id}
+          onClick={() => onSelect(s.id)}
+          style={{
+            width: "100%", textAlign: "left", padding: "8px 12px",
+            fontSize: 12, color: s.color, background: "none", border: "none",
+            cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
+            transition: "background-color 0.1s", fontFamily: "Inter, system-ui, sans-serif",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F8F5F0")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+        >
+          <span style={{ width: 6, height: 6, borderRadius: 99, backgroundColor: s.color, flexShrink: 0 }} />
+          {s.label}
+        </button>
+      ))}
+    </div>,
+    document.body
+  );
+}
+
 // ── Trades card ───────────────────────────────────────────────────────────────
 
-function TradesCard({ lead, stages, onMove }: {
+function TradesCard({ lead, stages, onMove, onDragStart }: {
   lead: TradesLead;
   stages: typeof TRADES_STAGES;
   onMove: (id: string, s: TradesStage) => void;
+  onDragStart: (id: string, type: "trades") => void;
 }) {
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
   const g = GRADE_BG[lead.grade] ?? GRADE_BG.ungraded;
 
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    setTimeout(() => document.addEventListener("click", close), 0);
+    return () => document.removeEventListener("click", close);
+  }, [open]);
+
   return (
-    <div style={{ ...S.card, position: "relative" }}>
+    <div
+      draggable
+      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(lead.id, "trades"); }}
+      style={{ ...S.card, cursor: "grab" }}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
-        <p style={{ fontSize: 12.5, fontWeight: 600, color: "#1E1C1A", lineHeight: 1.3 }}>
-          {lead.business_name ?? "—"}
-        </p>
+        <p style={{ fontSize: 12.5, fontWeight: 600, color: "#1E1C1A", lineHeight: 1.3 }}>{lead.business_name ?? "—"}</p>
         <span style={S.pill(g.bg, g.color)}>{lead.grade}</span>
       </div>
-
       {(lead.city || lead.state) && (
         <p style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#A09890", marginBottom: 8 }}>
           <MapPin size={9} /> {[lead.city, lead.state].filter(Boolean).join(", ")}
         </p>
       )}
-
       <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
         {lead.total_emails_sent > 0 && (
           <span style={{ fontSize: 10, fontFamily: "JetBrains Mono, monospace", color: "#A09890", display: "flex", alignItems: "center", gap: 3 }}>
             <Mail size={8} /> {lead.total_emails_sent}
           </span>
         )}
-        {lead.open_count > 0 && (
-          <span style={S.pill("#EEF4FF", "#1E5FAA")}>{lead.open_count} opens</span>
-        )}
-        {lead.click_count > 0 && (
-          <span style={S.pill("#FFF3EE", "#FF6B2B")}>{lead.click_count} clicks</span>
-        )}
-        {lead.response_received && (
-          <span style={S.pill("#ECFBF0", "#1E7A3C")}>replied</span>
-        )}
+        {lead.open_count > 0 && <span style={S.pill("#EEF4FF", "#1E5FAA")}>{lead.open_count} opens</span>}
+        {lead.click_count > 0 && <span style={S.pill("#FFF3EE", "#FF6B2B")}>{lead.click_count} clicks</span>}
+        {lead.response_received && <span style={S.pill("#ECFBF0", "#1E7A3C")}>replied</span>}
       </div>
-
-      {/* Stage mover */}
-      <div style={{ position: "relative" }}>
-        <button
-          onClick={() => setOpen(!open)}
-          style={{
-            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-            fontSize: 11, color: "#A09890",
-            backgroundColor: "#F8F5F0", border: "1px solid #E8E2D8",
-            borderRadius: 6, padding: "5px 10px", cursor: "pointer",
-            transition: "background-color 0.15s",
-          }}
-        >
-          <span>Move to…</span>
-          <ChevronDown size={10} />
-        </button>
-        {open && (
-          <div style={{
-            position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 20,
-            backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 8,
-            boxShadow: "0 4px 16px rgba(0,0,0,0.08)", overflow: "hidden",
-          }}>
-            {stages.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => { onMove(lead.id, s.id); setOpen(false); }}
-                style={{
-                  width: "100%", textAlign: "left", padding: "8px 12px",
-                  fontSize: 12, color: s.color, background: "none", border: "none", cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: 8,
-                  transition: "background-color 0.1s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F8F5F0")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: 99, backgroundColor: s.color, flexShrink: 0 }} />
-                {s.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <button
+        ref={btnRef}
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          fontSize: 11, color: "#A09890", backgroundColor: "#F8F5F0",
+          border: "1px solid #E8E2D8", borderRadius: 6, padding: "5px 10px", cursor: "pointer",
+        }}
+      >
+        <span>Move to…</span><ChevronDown size={10} />
+      </button>
+      <MoveDropdown
+        btnRef={btnRef} open={open} stages={stages}
+        onSelect={(id) => { onMove(lead.id, id as TradesStage); setOpen(false); }}
+      />
     </div>
   );
 }
 
 // ── Inbound card ──────────────────────────────────────────────────────────────
 
-function InboundCard({ lead, stages, onMove }: {
+function InboundCard({ lead, stages, onMove, onDragStart }: {
   lead: InboundLead;
   stages: typeof INBOUND_STAGES;
   onMove: (id: string, s: InboundStage) => void;
+  onDragStart: (id: string, type: "inbound") => void;
 }) {
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
   const sourceColors: Record<string, { bg: string; color: string }> = {
     referral:  { bg: "#EEF4FF", color: "#1E5FAA" },
     instagram: { bg: "#FFF0F7", color: "#9C2E6F" },
@@ -154,8 +182,19 @@ function InboundCard({ lead, stages, onMove }: {
   };
   const sc = sourceColors[lead.source ?? "other"] ?? sourceColors.other;
 
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    setTimeout(() => document.addEventListener("click", close), 0);
+    return () => document.removeEventListener("click", close);
+  }, [open]);
+
   return (
-    <div style={{ ...S.card, position: "relative" }}>
+    <div
+      draggable
+      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(lead.id, "inbound"); }}
+      style={{ ...S.card, cursor: "grab" }}
+    >
       <p style={{ fontSize: 12.5, fontWeight: 600, color: "#1E1C1A", lineHeight: 1.3, marginBottom: 4 }}>
         {lead.business_name || lead.name || "—"}
       </p>
@@ -167,43 +206,21 @@ function InboundCard({ lead, stages, onMove }: {
         {lead.referred_by && <span style={{ fontSize: 11, color: "#A09890" }}>via {lead.referred_by}</span>}
         {lead.budget_estimate && <span style={S.pill("#ECFBF0", "#1E7A3C")}>{lead.budget_estimate}</span>}
       </div>
-      <div style={{ position: "relative" }}>
-        <button
-          onClick={() => setOpen(!open)}
-          style={{
-            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-            fontSize: 11, color: "#A09890",
-            backgroundColor: "#F8F5F0", border: "1px solid #E8E2D8",
-            borderRadius: 6, padding: "5px 10px", cursor: "pointer",
-          }}
-        >
-          <span>Move to…</span><ChevronDown size={10} />
-        </button>
-        {open && (
-          <div style={{
-            position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 20,
-            backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 8,
-            boxShadow: "0 4px 16px rgba(0,0,0,0.08)", overflow: "hidden",
-          }}>
-            {stages.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => { onMove(lead.id, s.id); setOpen(false); }}
-                style={{
-                  width: "100%", textAlign: "left", padding: "8px 12px",
-                  fontSize: 12, color: s.color, background: "none", border: "none", cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: 8,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F8F5F0")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: 99, backgroundColor: s.color, flexShrink: 0 }} />
-                {s.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <button
+        ref={btnRef}
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          fontSize: 11, color: "#A09890", backgroundColor: "#F8F5F0",
+          border: "1px solid #E8E2D8", borderRadius: 6, padding: "5px 10px", cursor: "pointer",
+        }}
+      >
+        <span>Move to…</span><ChevronDown size={10} />
+      </button>
+      <MoveDropdown
+        btnRef={btnRef} open={open} stages={stages}
+        onSelect={(id) => { onMove(lead.id, id as InboundStage); setOpen(false); }}
+      />
     </div>
   );
 }
@@ -265,15 +282,31 @@ function AddInboundModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
 
 // ── Kanban column ─────────────────────────────────────────────────────────────
 
-function Column({ label, color, count, children }: { label: string; color: string; count: number; children: React.ReactNode }) {
+function Column({ label, color, count, children, onDrop, onDragOver, isDragOver }: {
+  label: string; color: string; count: number; children: React.ReactNode;
+  onDrop: () => void; onDragOver: () => void; isDragOver: boolean;
+}) {
   return (
-    <div style={{ minWidth: 210, maxWidth: 210, display: "flex", flexDirection: "column" }}>
+    <div
+      style={{ minWidth: 210, maxWidth: 210, display: "flex", flexDirection: "column" }}
+      onDragOver={(e) => { e.preventDefault(); onDragOver(); }}
+      onDrop={(e) => { e.preventDefault(); onDrop(); }}
+      onDragLeave={() => {}}
+    >
       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10, padding: "0 2px" }}>
         <span style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: color, flexShrink: 0 }} />
         <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color, flex: 1 }}>{label}</span>
         <span style={{ fontSize: 10.5, fontFamily: "JetBrains Mono, monospace", color: "#A09890", backgroundColor: "#E8E2D8", padding: "1px 7px", borderRadius: 99 }}>{count}</span>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>{children}</div>
+      <div style={{
+        display: "flex", flexDirection: "column", gap: 6, flex: 1,
+        minHeight: 60, borderRadius: 10, padding: isDragOver ? 4 : 0,
+        border: isDragOver ? `2px dashed ${color}` : "2px solid transparent",
+        backgroundColor: isDragOver ? `${color}10` : "transparent",
+        transition: "all 0.15s",
+      }}>
+        {children}
+      </div>
     </div>
   );
 }
@@ -297,6 +330,8 @@ export default function PipelinePage() {
   const [inboundLeads, setInboundLeads] = useState<InboundLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const dragRef = useRef<{ id: string; type: "trades" | "inbound" } | null>(null);
+  const [dragOver, setDragOver] = useState<string | null>(null);
 
   const loadTrades = useCallback(async () => {
     const { data } = await supabase.from("roofing_leads")
@@ -374,22 +409,44 @@ export default function PipelinePage() {
           <Loader2 size={16} className="animate-spin" /><span style={{ fontSize: 13 }}>Loading…</span>
         </div>
       ) : (
-        <div style={{ overflowX: "auto", paddingBottom: 16 }}>
+        <div style={{ overflowX: "auto", paddingBottom: 16 }} onDragEnd={() => { dragRef.current = null; setDragOver(null); }}>
           <div style={{ display: "flex", gap: 14, minWidth: "max-content" }}>
             {tab === "trades"
               ? TRADES_STAGES.map((stage) => (
-                  <Column key={stage.id} label={stage.label} color={stage.color} count={tradesByStage(stage.id).length}>
+                  <Column
+                    key={stage.id} label={stage.label} color={stage.color} count={tradesByStage(stage.id).length}
+                    isDragOver={dragOver === stage.id}
+                    onDragOver={() => setDragOver(stage.id)}
+                    onDrop={() => {
+                      if (dragRef.current?.type === "trades") moveTradesLead(dragRef.current.id, stage.id as TradesStage);
+                      setDragOver(null);
+                    }}
+                  >
                     {tradesByStage(stage.id).length === 0
                       ? <div style={{ border: "1px dashed #E8E2D8", borderRadius: 8, padding: "14px", fontSize: 11.5, color: "#C8C0B8", textAlign: "center" }}>Empty</div>
-                      : tradesByStage(stage.id).map((l) => <TradesCard key={l.id} lead={l} stages={TRADES_STAGES} onMove={moveTradesLead} />)
+                      : tradesByStage(stage.id).map((l) => (
+                          <TradesCard key={l.id} lead={l} stages={TRADES_STAGES} onMove={moveTradesLead}
+                            onDragStart={(id, type) => { dragRef.current = { id, type }; }} />
+                        ))
                     }
                   </Column>
                 ))
               : INBOUND_STAGES.map((stage) => (
-                  <Column key={stage.id} label={stage.label} color={stage.color} count={inboundByStage(stage.id).length}>
+                  <Column
+                    key={stage.id} label={stage.label} color={stage.color} count={inboundByStage(stage.id).length}
+                    isDragOver={dragOver === stage.id}
+                    onDragOver={() => setDragOver(stage.id)}
+                    onDrop={() => {
+                      if (dragRef.current?.type === "inbound") moveInboundLead(dragRef.current.id, stage.id as InboundStage);
+                      setDragOver(null);
+                    }}
+                  >
                     {inboundByStage(stage.id).length === 0
                       ? <div style={{ border: "1px dashed #E8E2D8", borderRadius: 8, padding: "14px", fontSize: 11.5, color: "#C8C0B8", textAlign: "center" }}>Empty</div>
-                      : inboundByStage(stage.id).map((l) => <InboundCard key={l.id} lead={l} stages={INBOUND_STAGES} onMove={moveInboundLead} />)
+                      : inboundByStage(stage.id).map((l) => (
+                          <InboundCard key={l.id} lead={l} stages={INBOUND_STAGES} onMove={moveInboundLead}
+                            onDragStart={(id, type) => { dragRef.current = { id, type }; }} />
+                        ))
                     }
                   </Column>
                 ))
