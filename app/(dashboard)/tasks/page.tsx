@@ -36,13 +36,30 @@ const card: React.CSSProperties = {
 
 // ── Task row ──────────────────────────────────────────────────────────────────
 
-function TaskRow({ task, onToggle, onDelete }: {
+const TIER_LABELS: Record<Tier, string> = {
+  main: "Main Objectives",
+  secondary: "Secondary Objectives",
+  daily: "Daily Recurring",
+};
+
+function TaskRow({ task, onToggle, onDelete, onEdit, onMove }: {
   task: Task;
   onToggle: (id: string, current: "todo" | "done") => void;
   onDelete: (id: string) => void;
+  onEdit: (id: string, text: string) => void;
+  onMove: (id: string, tier: Tier) => void;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(task.text);
+  const [showMove, setShowMove] = useState(false);
   const done = task.status === "done";
+
+  function commitEdit() {
+    const trimmed = editText.trim();
+    if (trimmed && trimmed !== task.text) onEdit(task.id, trimmed);
+    setEditing(false);
+  }
 
   return (
     <div
@@ -53,15 +70,16 @@ function TaskRow({ task, onToggle, onDelete }: {
         gap: 10,
         opacity: done ? 0.45 : 1,
         boxShadow: hovered && !done ? "0 1px 6px rgba(0,0,0,0.06)" : "none",
-        borderColor: hovered && !done ? "#D9D1C3" : "#E8E2D8",
+        borderColor: editing ? "#FF6B2B" : hovered && !done ? "#D9D1C3" : "#E8E2D8",
+        position: "relative",
       }}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={() => { setHovered(false); setShowMove(false); }}
     >
       <button
         onClick={() => onToggle(task.id, task.status)}
         style={{
-          width: 18, height: 18, marginTop: 1,
+          width: 18, height: 18, marginTop: editing ? 3 : 1,
           borderRadius: 5,
           border: done ? "none" : "1.5px solid #D9D1C3",
           backgroundColor: done ? "#1E7A3C" : "transparent",
@@ -74,48 +92,103 @@ function TaskRow({ task, onToggle, onDelete }: {
       </button>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{
-          fontSize: 13.5,
-          fontWeight: 500,
-          color: done ? "#A09890" : "#1E1C1A",
-          textDecoration: done ? "line-through" : "none",
-          lineHeight: 1.4,
-        }}>
-          {task.text}
-        </p>
+        {editing ? (
+          <input
+            autoFocus
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            onBlur={commitEdit}
+            onKeyDown={(e) => { if (e.key === "Enter") commitEdit(); if (e.key === "Escape") { setEditText(task.text); setEditing(false); } }}
+            style={{
+              width: "100%", fontSize: 13.5, fontWeight: 500,
+              color: "#1E1C1A", border: "none", outline: "none",
+              background: "transparent", fontFamily: "Inter, system-ui, sans-serif",
+            }}
+          />
+        ) : (
+          <p
+            style={{
+              fontSize: 13.5, fontWeight: 500,
+              color: done ? "#A09890" : "#1E1C1A",
+              textDecoration: done ? "line-through" : "none",
+              lineHeight: 1.4, cursor: done ? "default" : "text",
+            }}
+            onDoubleClick={() => { if (!done) { setEditText(task.text); setEditing(true); } }}
+          >
+            {task.text}
+          </p>
+        )}
         {task.project && (
           <span style={{
-            display: "inline-block",
-            marginTop: 4,
-            fontSize: 10.5,
-            fontFamily: "JetBrains Mono, monospace",
-            color: "#A09890",
-            backgroundColor: "#F0EBE1",
-            padding: "1px 7px",
-            borderRadius: 99,
+            display: "inline-block", marginTop: 4, fontSize: 10.5,
+            fontFamily: "JetBrains Mono, monospace", color: "#A09890",
+            backgroundColor: "#F0EBE1", padding: "1px 7px", borderRadius: 99,
           }}>
             {task.project}
           </span>
         )}
       </div>
 
-      <button
-        onClick={() => onDelete(task.id)}
-        style={{
-          opacity: hovered ? 1 : 0,
-          color: "#C8C0B8",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: 2,
-          flexShrink: 0,
-          transition: "opacity 0.15s, color 0.15s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#B83232")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "#C8C0B8")}
-      >
-        <Trash2 size={13} />
-      </button>
+      {/* Action buttons */}
+      <div style={{ display: "flex", gap: 4, alignItems: "center", flexShrink: 0, opacity: hovered && !editing ? 1 : 0, transition: "opacity 0.15s" }}>
+        {/* Edit */}
+        <button
+          onClick={() => { setEditText(task.text); setEditing(true); }}
+          title="Edit"
+          style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#C8C0B8", fontSize: 11 }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#FF6B2B")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#C8C0B8")}
+        >
+          ✏︎
+        </button>
+
+        {/* Move */}
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setShowMove((v) => !v)}
+            title="Move to…"
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#C8C0B8", fontSize: 11 }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#6B6560")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#C8C0B8")}
+          >
+            ⇅
+          </button>
+          {showMove && (
+            <div style={{
+              position: "absolute", right: 0, top: "100%", zIndex: 50,
+              background: "#fff", border: "1px solid #E8E2D8", borderRadius: 8,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 180, padding: 4,
+            }}>
+              {(["main", "secondary", "daily"] as Tier[]).filter(t => t !== task.tier).map(t => (
+                <button
+                  key={t}
+                  onClick={() => { onMove(task.id, t); setShowMove(false); }}
+                  style={{
+                    display: "block", width: "100%", textAlign: "left",
+                    padding: "7px 12px", fontSize: 12.5, color: "#1E1C1A",
+                    background: "none", border: "none", cursor: "pointer",
+                    borderRadius: 6, fontFamily: "Inter, system-ui, sans-serif",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#F0EBE1")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                >
+                  → {TIER_LABELS[t]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Delete */}
+        <button
+          onClick={() => onDelete(task.id)}
+          style={{ color: "#C8C0B8", background: "none", border: "none", cursor: "pointer", padding: 2 }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#B83232")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#C8C0B8")}
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -212,12 +285,14 @@ function AddTask({ tier, onAdd }: {
 
 // ── Tier section ──────────────────────────────────────────────────────────────
 
-function TierSection({ tier, tasks, onToggle, onDelete, onAdd }: {
+function TierSection({ tier, tasks, onToggle, onDelete, onAdd, onEdit, onMove }: {
   tier: Tier;
   tasks: Task[];
   onToggle: (id: string, current: "todo" | "done") => void;
   onDelete: (id: string) => void;
   onAdd: (text: string, project?: string) => Promise<void>;
+  onEdit: (id: string, text: string) => void;
+  onMove: (id: string, tier: Tier) => void;
 }) {
   const meta = TIER_META[tier];
   const done = tasks.filter((t) => t.status === "done").length;
@@ -261,7 +336,7 @@ function TierSection({ tier, tasks, onToggle, onDelete, onAdd }: {
           </div>
         )}
         {tasks.map((t) => (
-          <TaskRow key={t.id} task={t} onToggle={onToggle} onDelete={onDelete} />
+          <TaskRow key={t.id} task={t} onToggle={onToggle} onDelete={onDelete} onEdit={onEdit} onMove={onMove} />
         ))}
       </div>
 
@@ -306,6 +381,16 @@ export default function TasksPage() {
       .insert({ text, tier, status: "todo", project: project ?? null, date: today, sort_order: maxOrder })
       .select().single();
     if (data) setTasks((prev) => [...prev, data as Task]);
+  }
+
+  async function edit(id: string, text: string) {
+    setTasks((prev) => prev.map((t) => t.id === id ? { ...t, text } : t));
+    await supabase.from("tasks").update({ text }).eq("id", id);
+  }
+
+  async function move(id: string, tier: Tier) {
+    setTasks((prev) => prev.map((t) => t.id === id ? { ...t, tier } : t));
+    await supabase.from("tasks").update({ tier }).eq("id", id);
   }
 
   const byTier = (tier: Tier) => tasks.filter((t) => t.tier === tier);
@@ -358,9 +443,9 @@ export default function TasksPage() {
 
       {/* Tiers */}
       <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
-        <TierSection tier="main"      tasks={byTier("main")}      onToggle={toggle} onDelete={remove} onAdd={(t, p) => add("main", t, p)} />
-        <TierSection tier="secondary" tasks={byTier("secondary")} onToggle={toggle} onDelete={remove} onAdd={(t, p) => add("secondary", t, p)} />
-        <TierSection tier="daily"     tasks={byTier("daily")}     onToggle={toggle} onDelete={remove} onAdd={(t, p) => add("daily", t, p)} />
+        <TierSection tier="main"      tasks={byTier("main")}      onToggle={toggle} onDelete={remove} onAdd={(t, p) => add("main", t, p)}      onEdit={edit} onMove={move} />
+        <TierSection tier="secondary" tasks={byTier("secondary")} onToggle={toggle} onDelete={remove} onAdd={(t, p) => add("secondary", t, p)} onEdit={edit} onMove={move} />
+        <TierSection tier="daily"     tasks={byTier("daily")}     onToggle={toggle} onDelete={remove} onAdd={(t, p) => add("daily", t, p)}     onEdit={edit} onMove={move} />
       </div>
     </div>
   );

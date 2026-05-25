@@ -27,16 +27,16 @@ export default function Sidebar() {
       style={{ backgroundColor: "#1E1C1A", width: 220 }}
       className="flex flex-col h-screen shrink-0 select-none"
     >
-      {/* Wordmark */}
-      <div className="px-5 pt-6 pb-5">
-        <span
-          className="font-display text-[#FF6B2B]"
-          style={{ fontSize: 20 }}
-        >
-          WFD
-        </span>
+      {/* Logo */}
+      <div className="px-5 pt-5 pb-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/favicon.png"
+          alt="Wood Fired Designs"
+          style={{ width: 36, height: 36, objectFit: "contain", marginBottom: 6 }}
+        />
         <p
-          className="font-mono uppercase mt-0.5"
+          className="font-mono uppercase"
           style={{ fontSize: 9, letterSpacing: "0.14em", color: "#4A4642" }}
         >
           Operations
