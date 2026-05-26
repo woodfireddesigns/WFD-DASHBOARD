@@ -4,14 +4,52 @@ import { sendMail } from "@/lib/graph";
 
 const STEP_DELAYS = [0, 3, 2]; // days after each step before next is due
 
+// Blocklists for name validation
+const GENERIC_EMAIL_PREFIXES = new Set([
+  "info","hello","contact","admin","office","mail","support","team","sales",
+  "no","noreply","reply","billing","accounts","accounts","service","services",
+  "help","enquiries","enquiry","inquiry","inquiries","jobs","careers","pr",
+  "media","press","news","marketing","reception","manager","owner","ops",
+  "operations","corp","corporate","webmaster","postmaster","abuse","privacy",
+]);
+
+// Common last-name-only patterns from email prefixes (surname signals)
+const SURNAME_SIGNALS = /^(mc|mac|van|de|del|la|le|st|o'|al)[a-z]+$/i;
+
+function looksLikeName(raw: string): string | null {
+  const s = raw.replace(/[^a-zA-Z]/g, "").toLowerCase();
+  // Too short or too long to be a first name
+  if (s.length < 2 || s.length > 12) return null;
+  // Single letter
+  if (s.length === 1) return null;
+  // All same character
+  if (/^(.)\1+$/.test(s)) return null;
+  // Generic inbox name
+  if (GENERIC_EMAIL_PREFIXES.has(s)) return null;
+  // Looks like a surname prefix pattern
+  if (SURNAME_SIGNALS.test(s)) return null;
+  // All uppercase with 2+ chars is likely an abbreviation or last name (e.g. "AR", "JB")
+  if (raw === raw.toUpperCase() && raw.length <= 3) return null;
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 function getFirstName(lead: Record<string, string | null>): string | null {
-  if (lead.owner_name) return lead.owner_name.split(" ")[0];
+  // 1. owner_name field — most reliable
+  if (lead.owner_name) {
+    const parts = lead.owner_name.trim().split(/\s+/);
+    const first = parts[0];
+    // If it looks like an initial (single char or "J.") skip
+    if (first.replace(/\./g, "").length <= 1) return null;
+    const result = looksLikeName(first);
+    if (result) return result;
+  }
+  // 2. Email prefix — extract first segment before dots/underscores
   if (lead.email) {
-    const part = lead.email.split("@")[0].split(/[._\-+]/)[0].replace(/[^a-zA-Z]/g, "");
-    const generic = ["info","hello","contact","admin","office","mail","support","team","sales","no","noreply"];
-    if (part.length >= 3 && !generic.includes(part.toLowerCase())) {
-      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
-    }
+    const prefix = lead.email.split("@")[0];
+    // Try first segment (e.g. "john" from "john.smith@...")
+    const firstSegment = prefix.split(/[._\-+]/)[0];
+    const result = looksLikeName(firstSegment);
+    if (result) return result;
   }
   return null;
 }
@@ -25,18 +63,29 @@ function buildEmail(lead: Record<string, string | null>, step: number) {
     : "https://wfd-dashboard.vercel.app";
   const trackingPixelUrl = `${baseUrl}/api/leads/track?id=${lead.id}&step=${step}&event=open`;
 
+  const city = lead.city || "your area";
+  const biz  = lead.business_name || "your business";
+
   const subjects: Record<number, string> = {
-    1: `Question regarding ${lead.business_name}`,
-    2: `Quick follow up - ${lead.business_name}`,
-    3: `One last thing for ${lead.business_name}`,
+    1: lead.website_url
+      ? `I built something for ${biz}`
+      : `Free website preview — ${biz}`,
+    2: `Did you see this, ${name ?? biz.split(" ")[0]}?`,
+    3: `Last one from me — ${biz}`,
   };
 
   const bodies: Record<number, string> = {
     1: lead.website_url
-      ? `${greeting}\n\nI was looking at your website and noticed the mobile performance could be improved. I went ahead and built a high-speed preview of what a modern version of ${lead.business_name} could look like for the ${lead.city} market.\n\nYou can view the live preview here:\n${previewUrl}\n\nWhat do you think of the new look and the load speed?\n\nBest,\nMichael\n\nP.S. If you'd rather not hear from me again, just let me know and I'll remove you from my list.`
-      : `${greeting}\n\nI was researching roofing companies in the ${lead.city} area and noticed ${lead.business_name} doesn't have a website yet. I went ahead and built a free preview of what a modern site could look like for your business.\n\nLive preview:\n${previewUrl}\n\nA site like this could help you stand out and capture more leads in ${lead.city}.\n\nBest,\nMichael\n\nP.S. If you'd rather not hear from me again, just let me know and I'll remove you from my list.`,
-    2: `${greeting}\n\nJust following up to see if you had a second to check out that site preview I sent over:\n${previewUrl}\n\nI'm curious if you think a design like this would help you stand out from the other roofers in ${lead.city}. If you like it, I'd love to show you how we can get it live.\n\nBest,\nMichael`,
-    3: `${greeting}\n\nI'll keep this brief — here's the preview I built for ${lead.business_name}:\n${previewUrl}\n\nIf you're looking to upgrade your online presence this season, I'd love to chat. If not, no worries. The link stays live.\n\nBest,\nMichael`,
+      // Has a website — upgrade pitch
+      ? `${greeting}\n\nI build websites for roofing companies and came across ${biz} while researching contractors in ${city}.\n\nI put together a faster, more modern version of your site — took me a few hours. Thought it was worth showing you before I moved on.\n\nTake a look:\n${previewUrl}\n\nHappy to walk you through it if you're curious.\n\nMichael\nWood Fired Designs\n\nP.S. Not interested? Just say the word and I won't reach out again.`
+      // No website — new site pitch
+      : `${greeting}\n\nI noticed ${biz} doesn't have a website yet. Most of your competitors in ${city} do — and that's where homeowners are searching first.\n\nI built a free preview to show you what one could look like:\n${previewUrl}\n\nTakes 30 seconds to look at. No strings attached.\n\nMichael\nWood Fired Designs\n\nP.S. Not interested? Just let me know and I'll leave you alone.`,
+
+    // Follow-up — reference the preview, add urgency
+    2: `${greeting}\n\nSending a quick follow-up on the site preview I built for ${biz}:\n${previewUrl}\n\nIf you liked it, I can have a custom version live within a week. If the timing's off, no problem — just let me know and I'll check back later.\n\nMichael`,
+
+    // Final touch — short, no pressure
+    3: `${greeting}\n\nLast message from me on this — I know your inbox is busy.\n\nHere's the preview I built for ${biz} one more time:\n${previewUrl}\n\nIf you ever want to talk about getting a site like this live, I'm here. If not, I wish you a great season.\n\nMichael`,
   };
 
   return { subject: subjects[step], body: bodies[step], trackingPixelUrl };
