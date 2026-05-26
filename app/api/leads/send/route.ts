@@ -57,7 +57,7 @@ function getFirstName(lead: Record<string, string | null>): string | null {
 function buildEmail(lead: Record<string, string | null>, step: number) {
   const name = getFirstName(lead);
   const greeting = name ? `Hi ${name},` : "Hi there,";
-  const previewUrl = `https://roofer-preview-site.vercel.app/roofing/${lead.slug}`;
+  const previewUrl = `https://app.woodfireddesigns.com/roofing/${lead.slug}`;
   const baseUrl = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
     : "https://wfd-dashboard.vercel.app";

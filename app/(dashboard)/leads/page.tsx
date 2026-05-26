@@ -653,7 +653,7 @@ export default function LeadsPage() {
                         )}
 
                         {lead.slug && (
-                          <a href={`https://roofer-preview-site.vercel.app/roofing/${lead.slug}`} target="_blank" rel="noreferrer"
+                          <a href={`https://app.woodfireddesigns.com/roofing/${lead.slug}`} target="_blank" rel="noreferrer"
                             style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", fontSize: 11.5, fontWeight: 500, color: "#6B6560", border: "1px solid #E8E2D8", borderRadius: 6, backgroundColor: "#F8F5F0", textDecoration: "none", transition: "all 0.1s" }}
                             onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = "#D4CCBC"}
                             onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = "#E8E2D8"}>
