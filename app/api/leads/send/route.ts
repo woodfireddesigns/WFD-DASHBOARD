@@ -70,7 +70,7 @@ function buildEmail(lead: Record<string, string | null>, step: number) {
     1: lead.website_url
       ? `I built something for ${biz}`
       : `Free website preview — ${biz}`,
-    2: `Did you see this, ${name ?? biz.split(" ")[0]}?`,
+    2: name ? `Did you see this, ${name}?` : `Did you see this?`,
     3: `Last one from me — ${biz}`,
   };
 

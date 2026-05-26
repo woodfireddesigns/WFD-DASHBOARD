@@ -108,7 +108,8 @@ export default function LeadsPage() {
   const [selected, setSelected]       = useState<Set<string>>(new Set());
   const [actionMenu, setActionMenu]   = useState<string | null>(null);
   const [sending, setSending]         = useState<Set<string>>(new Set());
-  const [sendingAll, setSendingAll]   = useState(false);
+  const [sendingAll, setSendingAll]     = useState(false);
+  const [sendingTop5, setSendingTop5]   = useState(false);
   const [sendAllResult, setSendAllResult] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -287,6 +288,30 @@ export default function LeadsPage() {
     setTimeout(() => setSendAllResult(null), 5000);
   };
 
+  const sendTop5 = async () => {
+    // Top 5 unsent leads by score that have both email and slug
+    const unsent = leads
+      .filter((l) => l.email && l.slug && (!l.sequence_status || l.sequence_status === "none" || l.sequence_status === "pending"))
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+      .slice(0, 5);
+    if (unsent.length === 0) { setSendAllResult("No unsent leads with email + preview found."); return; }
+    setSendingTop5(true);
+    setSendAllResult(null);
+    let sent = 0;
+    for (const lead of unsent) {
+      try {
+        const r = await fetch("/api/leads/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId: lead.id }) });
+        if (r.ok) sent++;
+        // Small delay between sends to look human
+        await new Promise((res) => setTimeout(res, 1500));
+      } catch { /* continue */ }
+    }
+    await loadLeads();
+    setSendingTop5(false);
+    setSendAllResult(`Sent ${sent} of ${unsent.length} emails.`);
+    setTimeout(() => setSendAllResult(null), 6000);
+  };
+
   const syncReplies = async () => {
     setSyncing(true);
     try { await fetch("/api/leads/sync-replies"); await loadLeads(); } catch { /* silent */ }
@@ -361,9 +386,16 @@ export default function LeadsPage() {
               {sendAllResult}
             </span>
           )}
-          <button onClick={sendAllDue} disabled={sendingAll}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", border: "none", borderRadius: 8, backgroundColor: sendingAll ? "#F0EBE1" : "#FF6B2B", cursor: sendingAll ? "not-allowed" : "pointer", fontSize: 12.5, fontWeight: 600, color: sendingAll ? "#A09890" : "#fff", opacity: sendingAll ? 0.7 : 1 }}>
+          <button onClick={sendTop5} disabled={sendingTop5 || sendingAll}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", border: "1px solid #FF6B2B", borderRadius: 8, backgroundColor: sendingTop5 ? "#FFF3EE" : "#fff", cursor: (sendingTop5 || sendingAll) ? "not-allowed" : "pointer", fontSize: 12.5, fontWeight: 600, color: sendingTop5 ? "#A09890" : "#FF6B2B", opacity: (sendingTop5 || sendingAll) ? 0.7 : 1, transition: "all 0.15s" }}
+            onMouseEnter={(e) => { if (!sendingTop5 && !sendingAll) (e.currentTarget as HTMLElement).style.backgroundColor = "#FFF3EE"; }}
+            onMouseLeave={(e) => { if (!sendingTop5 && !sendingAll) (e.currentTarget as HTMLElement).style.backgroundColor = "#fff"; }}>
             <Zap size={12} />
+            {sendingTop5 ? "Sending…" : "Send Top 5"}
+          </button>
+          <button onClick={sendAllDue} disabled={sendingAll || sendingTop5}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", border: "none", borderRadius: 8, backgroundColor: sendingAll ? "#F0EBE1" : "#FF6B2B", cursor: (sendingAll || sendingTop5) ? "not-allowed" : "pointer", fontSize: 12.5, fontWeight: 600, color: sendingAll ? "#A09890" : "#fff", opacity: (sendingAll || sendingTop5) ? 0.7 : 1 }}>
+            <Mail size={12} />
             {sendingAll ? "Sending…" : "Send All Due"}
           </button>
           <button onClick={syncReplies} disabled={syncing}
