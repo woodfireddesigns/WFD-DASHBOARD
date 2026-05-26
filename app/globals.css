@@ -2,39 +2,37 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Brand */
+  /* Forge palette */
   --color-brand:        #FF6B2B;
   --color-brand-dim:    #E85A1A;
-  --color-charcoal:     #1E1C1A;
-  --color-charcoal-2:   #2C2A28;
-  --color-charcoal-3:   #3D342A;
-  --color-cream:        #F5F0E8;
-  --color-cream-2:      #EDE7DB;
-  --color-cream-3:      #D9D1C3;
+  --color-fire:         #FF9500;
+
+  /* Surfaces */
+  --color-bg:          #0F0D0B;
+  --color-surface:     #161310;
+  --color-surface-2:   #1E1A16;
+  --color-surface-3:   #262118;
+
+  /* Borders */
+  --color-border:      #2A241E;
+  --color-border-2:    #362E26;
 
   /* Text */
-  --color-text-primary:   #1E1C1A;
-  --color-text-secondary: #6B6560;
-  --color-text-muted:     #A09890;
-  --color-text-disabled:  #C8C0B8;
+  --color-text-primary:   #F2EDE8;
+  --color-text-secondary: #9A8E85;
+  --color-text-muted:     #5A4E46;
+  --color-text-disabled:  #3D342C;
 
   /* Semantic */
-  --color-success:  #1E7A3C;
-  --color-warning:  #B86B10;
-  --color-error:    #B83232;
-  --color-info:     #1E5FAA;
-
-  /* Surface */
-  --color-bg:          #F0EBE1;
-  --color-surface:     #FFFFFF;
-  --color-surface-sub: #F8F5F0;
-  --color-border:      #E8E2D8;
-  --color-border-2:    #D9D1C3;
+  --color-success:  #2D9E5F;
+  --color-warning:  #D4821A;
+  --color-error:    #C0392B;
+  --color-info:     #2471A3;
 
   /* Sidebar */
-  --color-sidebar-bg:     #1E1C1A;
-  --color-sidebar-hover:  #2C2A28;
-  --color-sidebar-active: #2C2A28;
+  --color-sidebar-bg:     #0A0907;
+  --color-sidebar-hover:  #1A1410;
+  --color-sidebar-active: #1E1A16;
 
   /* Fonts */
   --font-display: 'Anton', Impact, sans-serif;
@@ -48,8 +46,8 @@ html { height: 100%; }
 
 body {
   height: 100%;
-  background-color: #F0EBE1;
-  color: #1E1C1A;
+  background-color: #0F0D0B;
+  color: #F2EDE8;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.5;
@@ -57,7 +55,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Anton — always uppercase everywhere */
+/* Anton — always uppercase */
 .font-display,
 h1, h2, h3 {
   font-family: 'Anton', Impact, sans-serif;
@@ -66,7 +64,6 @@ h1, h2, h3 {
   line-height: 1.05;
 }
 
-/* Mono utility */
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
   font-variant-numeric: tabular-nums;
@@ -75,12 +72,34 @@ h1, h2, h3 {
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #D9D1C3; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #A09890; }
+::-webkit-scrollbar-thumb { background: #2A241E; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #3D342C; }
 
-/* Focus visible */
+/* Focus */
 :focus-visible {
   outline: 2px solid #FF6B2B;
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Forge glow utility */
+.glow-orange {
+  box-shadow: 0 0 20px rgba(255,107,43,0.15), 0 0 40px rgba(255,107,43,0.05);
+}
+
+.glow-text {
+  text-shadow: 0 0 20px rgba(255,107,43,0.4);
+}
+
+/* Forge card */
+.forge-card {
+  background: #161310;
+  border: 1px solid #2A241E;
+  border-radius: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.forge-card:hover {
+  border-color: #362E26;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
