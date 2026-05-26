@@ -108,6 +108,8 @@ export default function LeadsPage() {
   const [selected, setSelected]       = useState<Set<string>>(new Set());
   const [actionMenu, setActionMenu]   = useState<string | null>(null);
   const [sending, setSending]         = useState<Set<string>>(new Set());
+  const [sendingAll, setSendingAll]   = useState(false);
+  const [sendAllResult, setSendAllResult] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // ── Fetch ───────────────────────────────────────────────────────────────────
@@ -261,6 +263,30 @@ export default function LeadsPage() {
     } as Partial<RoofingLead>);
   }, [updateLead]);
 
+  const sendAllDue = async () => {
+    const now = new Date();
+    const due = leads.filter(l => {
+      if (!l.email || !l.slug) return false;
+      if (!l.sequence_status || l.sequence_status === "none") return true; // never sent
+      if (l.sequence_status === "active" && (l.sequence_step ?? 0) < 3) {
+        if (!l.next_outreach_at) return false;
+        return new Date(l.next_outreach_at) <= now;
+      }
+      return false;
+    });
+    if (due.length === 0) { setSendAllResult("No leads due today."); return; }
+    setSendingAll(true);
+    setSendAllResult(null);
+    let sent = 0;
+    for (const lead of due) {
+      try { const r = await fetch("/api/leads/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId: lead.id }) }); if (r.ok) sent++; } catch { /* continue */ }
+    }
+    await loadLeads();
+    setSendingAll(false);
+    setSendAllResult(`Sent ${sent} of ${due.length} emails.`);
+    setTimeout(() => setSendAllResult(null), 5000);
+  };
+
   const syncReplies = async () => {
     setSyncing(true);
     try { await fetch("/api/leads/sync-replies"); await loadLeads(); } catch { /* silent */ }
@@ -329,11 +355,23 @@ export default function LeadsPage() {
             {stats.total.toLocaleString()} total · {stats.aGrade} grade A · {stats.withEmail} with email · {stats.replied} replied
           </p>
         </div>
-        <button onClick={syncReplies} disabled={syncing}
-          style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", border: "1px solid #E8E2D8", borderRadius: 8, backgroundColor: "#fff", cursor: "pointer", fontSize: 12.5, fontWeight: 500, color: "#6B6560", opacity: syncing ? 0.5 : 1 }}>
-          <RefreshCw size={12} style={{ animation: syncing ? "spin 1s linear infinite" : undefined }} />
-          {syncing ? "Syncing…" : "Sync Replies"}
-        </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {sendAllResult && (
+            <span style={{ fontSize: 12, color: "#1E7A3C", backgroundColor: "#ECFBF0", padding: "5px 10px", borderRadius: 6, fontWeight: 500 }}>
+              {sendAllResult}
+            </span>
+          )}
+          <button onClick={sendAllDue} disabled={sendingAll}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", border: "none", borderRadius: 8, backgroundColor: sendingAll ? "#F0EBE1" : "#FF6B2B", cursor: sendingAll ? "not-allowed" : "pointer", fontSize: 12.5, fontWeight: 600, color: sendingAll ? "#A09890" : "#fff", opacity: sendingAll ? 0.7 : 1 }}>
+            <Zap size={12} />
+            {sendingAll ? "Sending…" : "Send All Due"}
+          </button>
+          <button onClick={syncReplies} disabled={syncing}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", border: "1px solid #E8E2D8", borderRadius: 8, backgroundColor: "#fff", cursor: "pointer", fontSize: 12.5, fontWeight: 500, color: "#6B6560", opacity: syncing ? 0.5 : 1 }}>
+            <RefreshCw size={12} style={{ animation: syncing ? "spin 1s linear infinite" : undefined }} />
+            {syncing ? "Syncing…" : "Sync Replies"}
+          </button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -633,7 +671,7 @@ export default function LeadsPage() {
                           <button onClick={() => canSend && !isSending && sendStep(lead)}
                             disabled={!canSend || isSending}
                             title={!lead.email ? "No email" : !lead.slug ? "No preview yet" : undefined}
-                            style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 11px", fontSize: 12, fontWeight: 600, backgroundColor: canSend ? "#FF6B2B" : "#F0EBE1", color: canSend ? "#fff" : "#C8C0B8", border: "none", borderRadius: 6, cursor: canSend && !isSending ? "pointer" : "not-allowed", minWidth: 66, justifyContent: "center", transition: "opacity 0.1s" }}>
+                            style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 11px", fontSize: 12, fontWeight: 600, backgroundColor: canSend ? "#FF6B2B" : "#2A241E", color: canSend ? "#fff" : "#5A4E46", border: `1px solid ${canSend ? "transparent" : "#3D342C"}`, borderRadius: 6, cursor: canSend && !isSending ? "pointer" : "not-allowed", minWidth: 66, justifyContent: "center", transition: "opacity 0.1s" }}>
                             {isSending ? "…" : <><Zap size={10} /> Send 1</>}
                           </button>
                         )}
