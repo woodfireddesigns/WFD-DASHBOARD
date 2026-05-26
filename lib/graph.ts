@@ -62,7 +62,14 @@ export async function sendMail({ to, subject, body, trackingPixelUrl }: SendMail
     ? `<img src="${trackingPixelUrl}" width="1" height="1" style="display:none" alt="" />`
     : "";
 
-  const htmlBody = `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#222">${body.replace(/\n/g, "<br>")}${pixel}</div>`;
+  // Convert plain-text URLs to clickable links before rendering
+  const linkedBody = body
+    .replace(/\n/g, "<br>")
+    .replace(
+      /(https?:\/\/[^\s<"]+)/g,
+      '<a href="$1" style="color:#FF6B2B;text-decoration:none;font-weight:600">$1</a>'
+    );
+  const htmlBody = `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#222">${linkedBody}${pixel}</div>`;
 
   const message = {
     message: {
