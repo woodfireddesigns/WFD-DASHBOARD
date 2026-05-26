@@ -247,6 +247,7 @@ function AddTask({ tier, onAdd }: {
         <input
           value={project}
           onChange={(e) => setProject(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") setOpen(false); }}
           placeholder="Project tag (optional)"
           style={{
             flex: 1, fontSize: 11.5, color: "#6B6560",
