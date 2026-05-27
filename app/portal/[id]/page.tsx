@@ -165,14 +165,29 @@ function PortalPage() {
           </div>
         </div>
 
-        {/* Payment */}
-        {!depositPaid && (
-          <div style={{ background: "var(--bg-surface)", border: "1.5px solid var(--accent)", borderRadius: 10, padding: "22px", marginBottom: 20 }}>
-            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--accent)", textTransform: "uppercase", marginBottom: 10 }}>Action Required — Deposit</p>
-            <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.65, marginBottom: 18 }}>
-              Your contract is signed. Pay your deposit to officially start the project.
+        {/* What's next */}
+        {!depositPaid && !fullPaid && (
+          <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px", marginBottom: 20 }}>
+            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 14 }}>What's Next</p>
+            <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 18 }}>
+              Michael will be in touch within <strong style={{ color: "var(--text-primary)" }}>24 hours</strong> to walk you through the scope and answer any questions. No pressure to do anything right now.
             </p>
-            <a href={`/portal/${id}/pay`} className="pay-btn">Pay Deposit & Start My Project →</a>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <a href="https://calendly.com/woodfireddesigns/discovery" target="_blank" rel="noopener noreferrer" className="pay-btn"
+                style={{ textAlign: "center", textDecoration: "none" }}>
+                Schedule a Call →
+              </a>
+              {intake?.status !== "signed" && (
+                <a href={`/onboard/${id}`} style={{ display: "block", padding: "13px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text-secondary)", textAlign: "center", textDecoration: "none", fontSize: 13.5, fontWeight: 500 }}>
+                  Review & Sign Contract
+                </a>
+              )}
+              {intake?.status === "signed" && (
+                <a href={`/portal/${id}/pay`} style={{ display: "block", padding: "13px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text-secondary)", textAlign: "center", textDecoration: "none", fontSize: 13.5, fontWeight: 500 }}>
+                  Pay Deposit & Start →
+                </a>
+              )}
+            </div>
           </div>
         )}
 
