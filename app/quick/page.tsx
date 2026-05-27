@@ -133,7 +133,7 @@ export default function QuickIntakePage() {
   function setField(key: string, val: string) {
     setAnswers(p => {
       const c = (p.contact as unknown as Record<string,string>) ?? {};
-      return { ...p, contact: { ...c, [key]: val } } as Answers;
+      return { ...p, contact: { ...c, [key]: val } as unknown as string } as Answers;
     });
   }
   function toggleMulti(key: string, val: string) {
