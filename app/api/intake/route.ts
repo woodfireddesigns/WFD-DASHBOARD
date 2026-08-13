@@ -13,6 +13,7 @@ const PACKAGE_PRICES: Record<string, number> = {
   packaging_single: 1200, packaging_system: 2800,
   photo_starter: 800, photo_pro: 1500, photo_campaign: 2800,
   merch_single: 800, merch_line: 1800,
+  pp_brand_foundation: 3500, pp_full_system: 4300, pp_pitch_deck: 1500,
 };
 const INTEGRATION_PRICES: Record<string, number> = {
   "Online booking system": 400,
@@ -105,6 +106,31 @@ export async function POST(req: NextRequest) {
         "Google Analytics + Search Console",
         "Full ownership transfer",
       ],
+      pp_brand_foundation: [
+        "Brand strategy brief + positioning",
+        "Wordmark + icon + medallion mark system",
+        "Typography system (web, print, packaging)",
+        "Full color palette — HEX / CMYK / Pantone",
+        "Brand guidelines PDF",
+        "All source files — full ownership",
+      ],
+      pp_full_system: [
+        "Brand strategy brief + positioning",
+        "Wordmark + icon + medallion mark system",
+        "Typography system (web, print, packaging)",
+        "Full color palette — HEX / CMYK / Pantone",
+        "Brand guidelines PDF",
+        "Field Gear sub-brand identity",
+        "Dual-channel co-existence rules",
+        "Crate packaging structure guidance",
+        "All source files — full ownership",
+      ],
+      pp_pitch_deck: [
+        "12–16 slide Lowe's pitch deck",
+        "Brand story + product hierarchy",
+        "Category argument for Lowe's buyer",
+        "PDF export + editable source file",
+      ],
     };
 
     const deliverables = [
@@ -120,6 +146,7 @@ export async function POST(req: NextRequest) {
       packaging_single: "Packaging — Single SKU", packaging_system: "Packaging — Multi-SKU System",
       photo_starter: "AI Photography — Starter", photo_pro: "AI Photography — Pro", photo_campaign: "AI Photography — Campaign",
       merch_single: "Merch Design — Single Item", merch_line: "Merch Design — Full Line",
+      pp_brand_foundation: "P&P — Brand Foundation", pp_full_system: "P&P — Full System", pp_pitch_deck: "P&P — Pitch Deck",
     };
 
     const { data: project } = await supabase

@@ -28,17 +28,38 @@ const CSS = `
 `;
 
 const PACKAGE_LABELS: Record<string, string> = {
-  starter_site: "Starter Site",
-  full_website: "Full Website",
-  brand_and_site: "Brand + Site",
-  test_package: "Test Package",
+  starter_site:        "Starter Site",
+  full_website:        "Full Website",
+  brand_and_site:      "Brand + Site",
+  test_package:        "Test Package",
+  pp_brand_foundation: "Pitcher & Pour — Brand Foundation",
+  pp_full_system:      "Pitcher & Pour — Full System",
+  pp_pitch_deck:       "Pitcher & Pour — Pitch Deck",
+  pp_bundle:           "Pitcher & Pour — Full System + Pitch Deck Bundle",
+  il_full_launch:      "Indigo Leather — Full Brand & Commerce Launch",
 };
 
 const BASE_PRICES: Record<string, number> = {
-  starter_site: 1200,
-  full_website: 2400,
-  brand_and_site: 4200,
-  test_package: 19,
+  starter_site:        1200,
+  full_website:        2400,
+  brand_and_site:      4200,
+  test_package:        19,
+  pp_brand_foundation: 3500,
+  pp_full_system:      4300,
+  pp_pitch_deck:       1500,
+  pp_bundle:           5550,
+  il_full_launch:      2400,
+};
+
+const PACKAGE_TIMELINES: Record<string, string> = {
+  starter_site:        "1–2 weeks",
+  full_website:        "2–3 weeks",
+  brand_and_site:      "3–5 weeks",
+  pp_brand_foundation: "3–4 weeks",
+  pp_full_system:      "5–6 weeks",
+  pp_pitch_deck:       "2 weeks",
+  pp_bundle:           "6–8 weeks",
+  il_full_launch:      "3–4 weeks",
 };
 
 const PACKAGE_DELIVERABLES: Record<string, string[]> = {
@@ -76,6 +97,67 @@ const PACKAGE_DELIVERABLES: Record<string, string[]> = {
   test_package: [
     "Internal Stripe payment test — $19",
     "No deliverables — test only",
+  ],
+  pp_brand_foundation: [
+    "Brand strategy brief + positioning document",
+    "Primary wordmark — full lockup with icon and medallion mark system",
+    "Secondary and stacked logo variants for all use cases",
+    "Typography system — headline, body, and label fonts for web, print, and packaging",
+    "Full color palette — HEX, CMYK, and Pantone values",
+    "Brand guidelines PDF — usage rules, dos/don'ts, application examples",
+    "All source files — AI, EPS, SVG, PNG — full ownership transferred",
+  ],
+  pp_full_system: [
+    "Everything included in Brand Foundation (see above)",
+    "Field Gear sub-brand identity — full mark system that co-exists with main P&P brand",
+    "Dual-channel co-existence rules — how Pitcher & Pour and Field Gear operate side by side",
+    "Crate packaging structure guidance — layout system, hierarchy, and material callouts",
+    "Retail-ready file formats for print production",
+    "All source files — AI, EPS, SVG, PNG — full ownership transferred",
+  ],
+  pp_pitch_deck: [
+    "15–20 slide Lowe's pitch deck, fully designed",
+    "Brand story and product hierarchy narrative",
+    "Category argument structured for a Lowe's category buyer",
+    "Competitive landscape and differentiation framing",
+    "Retail margin, velocity, and distribution opportunity slides",
+    "Animated HTML version — full interactive web-based presentation (high-grade, motion design)",
+    "PDF version — static export for email, printing, and meetings",
+    "Editable source file (Keynote or PowerPoint) — full ownership",
+  ],
+  il_full_launch: [
+    "AI-directed product photography — hero, flatlay, detail, and lifestyle shots",
+    "Brand copy — tagline, voice guide, product descriptions, page copy, SEO metadata",
+    "Headless Zoho Commerce store — account setup, product catalog, payment gateway, domain + SSL",
+    "Custom front-end design — homepage, collection pages, product page templates",
+    "Mobile-responsive across all devices, performance-optimized",
+    "Navigation architecture — intuitive, minimal, conversion-focused",
+    "Pre-launch QA across browsers and devices",
+    "30-minute owner walkthrough + documentation for managing products",
+    "Full ownership — all files, store credentials, source code transferred",
+  ],
+  pp_bundle: [
+    "— BRAND SYSTEM (Phase 01 + 02) —",
+    "Brand strategy brief + positioning document",
+    "Primary wordmark — full lockup with icon and medallion mark system",
+    "Secondary and stacked logo variants for all use cases",
+    "Typography system — headline, body, and label fonts (web, print, packaging)",
+    "Full color palette — HEX, CMYK, and Pantone values",
+    "Brand guidelines PDF — usage rules, dos/don'ts, application examples",
+    "Field Gear sub-brand identity — full mark system co-existing with P&P",
+    "Dual-channel co-existence rules (Pitcher & Pour + Field Gear)",
+    "Crate packaging structure guidance — layout system, hierarchy, material callouts",
+    "— PITCH DECK (Phase 03 — runs parallel) —",
+    "15–20 slide Lowe's pitch deck built in your brand system",
+    "Animated HTML version — full interactive web-based presentation (high-grade, motion design)",
+    "PDF version — static export for email, printing, and meetings",
+    "Editable source file (Keynote or PowerPoint) — full ownership",
+    "Category argument + product hierarchy structured for a Lowe's buyer",
+    "Competitive landscape and differentiation framing",
+    "— DELIVERY —",
+    "All source files — AI, EPS, SVG, PNG — full ownership transferred",
+    "Pitch deck delivered simultaneous with brand system (parallel track)",
+    "Bundle discount applied: $250 savings vs. purchasing separately",
   ],
 };
 
@@ -192,19 +274,42 @@ export default function ContractPage() {
         {/* Project Brief */}
         <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 22px", marginBottom: 28 }}>
           <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 14 }}>Project Brief</p>
-          {[
-            ["Primary Goal", intake.primary_goal as string],
-            ["Target Customer", intake.target_customer as string],
-            ["What Makes You Different", intake.differentiator as string],
-            ["Style Direction", ((intake.style_direction as string[]) ?? []).join(", ")],
-            ["Launch Timeline", intake.launch_timeline as string],
-            ["Platform Preference", intake.platform_pref as string],
-          ].filter(([, v]) => v).map(([label, val]) => (
-            <div key={label as string} style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 3 }}>{label as string}</p>
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{val as string}</p>
+          {(pkg.startsWith("pp_") || pkg.startsWith("il_")) ? (
+            // Direct proposal — no questionnaire answers
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {[
+                ["Client", clientName],
+                ["Company", intake.business_name as string || ""],
+                ["Package", PACKAGE_LABELS[pkg]],
+                ["Investment", `$${price.toLocaleString()}`],
+                ["Estimated Timeline", PACKAGE_TIMELINES[pkg] ?? "TBD"],
+                ["Kickoff", "Work begins upon receipt of signed contract and 50% deposit"],
+                ["Delivery Format", "All files transferred via shared Google Drive folder upon final payment"],
+              ].map(([label, val]) => (
+                <div key={label} style={{ display: "flex", gap: 16, alignItems: "baseline" }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-secondary)", minWidth: 160, flexShrink: 0 }}>{label}</p>
+                  <p style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.5 }}>{val}</p>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            // Standard intake — show questionnaire answers
+            <div>
+              {[
+                ["Primary Goal", intake.primary_goal as string],
+                ["Target Customer", intake.target_customer as string],
+                ["What Makes You Different", intake.differentiator as string],
+                ["Style Direction", ((intake.style_direction as string[]) ?? []).join(", ")],
+                ["Launch Timeline", intake.launch_timeline as string],
+                ["Platform Preference", intake.platform_pref as string],
+              ].filter(([, v]) => v).map(([label, val]) => (
+                <div key={label as string} style={{ marginBottom: 12 }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 3 }}>{label as string}</p>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{val as string}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Scope of Work */}

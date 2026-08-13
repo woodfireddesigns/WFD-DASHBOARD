@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { useParams, useSearchParams } from "next/navigation";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// No browser Supabase client here on purpose: `proposals` is RLS-locked with
+// no anon policy, so reads and writes both have to go through the API routes,
+// which use the service role key. Signing also creates invoices, which live on
+// service-role-only tables.
 
 interface LineItem {
   label: string;
@@ -34,6 +33,10 @@ interface Proposal {
   status: string;
   signed_name: string | null;
   signed_at: string | null;
+  deposit_amount: number | null;
+  deposit_label: string | null;
+  contract_pdf_url: string | null;
+  stripe_payment_link: string | null;
 }
 
 const CSS = `
@@ -91,12 +94,16 @@ function fmt(n: number) {
 
 export default function ContractPage() {
   const { id } = useParams<{ id: string }>();
+  const search = useSearchParams();
+  const paid = search.get("paid") === "1";
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [loading, setLoading] = useState(true);
   const [signedName, setSignedName] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState(false);
+  const [signError, setSignError] = useState<string | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const signRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -110,51 +117,55 @@ export default function ContractPage() {
 
   useEffect(() => {
     if (!id) return;
-    supabase
-      .from("proposals")
-      .select("*")
-      .eq("id", id)
-      .single()
-      .then(({ data }) => {
+    fetch(`/api/proposals/detail?id=${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: Proposal | null) => {
         setProposal(data);
-        if (data?.status === "signed") setSigned(true);
+        if (data?.status === "signed") {
+          setSigned(true);
+          setCheckoutUrl(data.stripe_payment_link);
+        }
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, [id]);
 
   async function handleSign() {
     if (!signedName.trim() || !agreed || !proposal) return;
     setSigning(true);
-    const signedAt = new Date().toISOString();
+    setSignError(null);
 
-    await supabase.from("proposals").update({
-      status: "signed",
-      signed_name: signedName.trim(),
-      signed_at: signedAt,
-    }).eq("id", proposal.id);
+    try {
+      const res = await fetch("/api/proposals/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposalId: proposal.id, signedName: signedName.trim() }),
+      });
+      const out = await res.json();
 
-    // Create invoice row
-    await supabase.from("invoices").insert({
-      client_name: proposal.client_name,
-      company: proposal.company,
-      email: proposal.email,
-      proposal_id: proposal.id,
-      amount: proposal.total,
-      status: "draft",
-      line_items: proposal.line_items.map((li) => ({
-        description: li.label,
-        qty: 1,
-        rate: li.price,
-        total: li.price,
-      })),
-      notes: `Contract signed by ${signedName.trim()} on ${new Date(signedAt).toLocaleDateString()}`,
-    });
+      if (!res.ok) {
+        setSignError(out.error ?? "Something went wrong. Email michael@woodfireddesigns.com.");
+        setSigning(false);
+        return;
+      }
 
-    setSigned(true);
-    setSigning(false);
+      setSigned(true);
+      setCheckoutUrl(out.checkoutUrl ?? null);
 
-    // Scroll to signed confirmation
-    setTimeout(() => signRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      // Straight to payment. The contract is already executed and invoiced
+      // server-side at this point, so a failed redirect costs nothing but a
+      // click — the signed state below still shows a Pay button.
+      if (out.checkoutUrl) {
+        window.location.href = out.checkoutUrl as string;
+        return;
+      }
+
+      setSigning(false);
+      setTimeout(() => signRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+    } catch {
+      setSignError("Network error. Your contract was not submitted — please try again.");
+      setSigning(false);
+    }
   }
 
   if (loading) {
@@ -174,6 +185,15 @@ export default function ContractPage() {
   }
 
   const proposalDate = new Date(proposal.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  // Phase-billed proposals set deposit_amount/deposit_label. Everything else
+  // keeps the original flat 50% deposit model.
+  const phaseBilled = proposal.deposit_amount != null;
+  const deposit = proposal.deposit_amount ?? Math.round(proposal.total * 0.5);
+  const depositLabel = proposal.deposit_label ?? "50% Project Deposit";
+  const dueNote = phaseBilled
+    ? `${depositLabel} due to start · Remaining phases invoiced as each one begins`
+    : "50% deposit due upon signing · Remainder due at delivery";
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "var(--font-b)", padding: "48px 24px 80px" }}>
@@ -293,7 +313,7 @@ export default function ContractPage() {
             <p style={{ fontFamily: "var(--font-d)", fontSize: 32, fontWeight: 800, color: "var(--accent)" }}>{fmt(proposal.total)}</p>
           </div>
           <p style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 8 }}>
-            50% deposit due upon signing · Remainder due at delivery
+            {dueNote}
           </p>
         </div>
 
@@ -303,14 +323,25 @@ export default function ContractPage() {
             Terms & Conditions
           </p>
           <div className="print-card" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px", display: "flex", flexDirection: "column", gap: 14 }}>
-            {[
-              ["Payment", "A 50% deposit is required before work begins. The remaining balance is due upon project delivery before final files are transferred. Rush fee (if applicable) is included in the deposit amount."],
-              ["Revisions", "Each deliverable includes two rounds of revisions. Additional revision rounds are billed at $150/hr. Revisions must be submitted as a single consolidated set per round."],
-              ["Timeline", "Project timelines begin on the date the deposit is received and project materials (brand assets, copy, product info) are submitted by the client. Delays in client deliverables extend the timeline accordingly."],
-              ["Intellectual Property", "All source files and final deliverables transfer to the client upon receipt of final payment. Wood Fired Designs retains the right to display the work in its portfolio."],
-              ["Cancellation", "If the client cancels after work has begun, the deposit is non-refundable. If Wood Fired Designs cancels, a full refund is issued within 5 business days."],
-              ["Governing Law", "This agreement is governed by the laws of the state in which Undrafted Designs LLC is registered."],
-            ].map(([title, body]) => (
+            {(phaseBilled
+              ? [
+                  ["Payment", "Payment is collected per phase. Each phase is invoiced and funded before that phase begins; no phase starts until the prior one is approved. Work outside the agreed scope is billed at $75/hr."],
+                  ["Revisions", "Each deliverable includes two rounds of revisions. Additional revision rounds are billed at $75/hr. Revisions must be submitted as a single consolidated set per round."],
+                  ["Timeline", "Project timelines begin on the date the first phase payment is received and project materials (brand assets, copy, product info) are submitted by the client. Delays in client deliverables extend the timeline accordingly."],
+                  ["Intellectual Property", "All source files and final deliverables transfer to the client upon receipt of final payment for the relevant phase. Wood Fired Designs retains the right to display the work in its portfolio."],
+                  ["Regulatory Copy", "Nutrition, ingredient and allergen panels are typeset to copy supplied and approved by the client or its co-packer. Wood Fired Designs does not author, verify or legally clear regulatory content."],
+                  ["Cancellation", "If the client cancels after a phase has begun, that phase's payment is non-refundable. Unstarted phases are refunded in full. If Wood Fired Designs cancels, a full refund of unstarted work is issued within 5 business days."],
+                  ["Governing Law", "This agreement is governed by the laws of the state in which Undrafted Designs LLC is registered."],
+                ]
+              : [
+                  ["Payment", "A 50% deposit is required before work begins. The remaining balance is due upon project delivery before final files are transferred. Rush fee (if applicable) is included in the deposit amount."],
+                  ["Revisions", "Each deliverable includes two rounds of revisions. Additional revision rounds are billed at $150/hr. Revisions must be submitted as a single consolidated set per round."],
+                  ["Timeline", "Project timelines begin on the date the deposit is received and project materials (brand assets, copy, product info) are submitted by the client. Delays in client deliverables extend the timeline accordingly."],
+                  ["Intellectual Property", "All source files and final deliverables transfer to the client upon receipt of final payment. Wood Fired Designs retains the right to display the work in its portfolio."],
+                  ["Cancellation", "If the client cancels after work has begun, the deposit is non-refundable. If Wood Fired Designs cancels, a full refund is issued within 5 business days."],
+                  ["Governing Law", "This agreement is governed by the laws of the state in which Undrafted Designs LLC is registered."],
+                ]
+            ).map(([title, body]) => (
               <div key={title}>
                 <p style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>{title}</p>
                 <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.65 }}>{body}</p>
@@ -329,16 +360,55 @@ export default function ContractPage() {
                 Signed by <strong style={{ color: "var(--text-primary)" }}>{proposal.signed_name || signedName}</strong>
                 {proposal.signed_at && ` on ${new Date(proposal.signed_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`}.
               </p>
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                Michael will be in touch within one business day with your deposit invoice and a project kickoff link. Check {proposal.email} for next steps.
-              </p>
-              <div style={{ marginTop: 24, padding: "14px 18px", background: "var(--bg-elevated)", borderRadius: 8, border: "1px solid var(--border)" }}>
-                <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>Deposit due to start</p>
-                <p style={{ fontFamily: "var(--font-d)", fontSize: 22, fontWeight: 700, color: "var(--accent)" }}>
-                  {fmt(Math.round(proposal.total * 0.5))}
+              {paid ? (
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  Payment received. Michael will be in touch within one business day to kick off {depositLabel.toLowerCase()}. A receipt is on its way to {proposal.email}.
                 </p>
-                <p style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>50% of {fmt(proposal.total)}</p>
+              ) : (
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  One more step: fund {depositLabel.toLowerCase()} below and work begins. A copy of the executed agreement is on its way to {proposal.email}.
+                </p>
+              )}
+
+              <div style={{ marginTop: 24, padding: "16px 18px", background: "var(--bg-elevated)", borderRadius: 8, border: "1px solid var(--border)" }}>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>
+                  {paid ? "Paid" : "Due to start"} · {depositLabel}
+                </p>
+                <p style={{ fontFamily: "var(--font-d)", fontSize: 22, fontWeight: 700, color: "var(--accent)" }}>
+                  {fmt(deposit)}
+                </p>
+                <p style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>
+                  {phaseBilled
+                    ? `of ${fmt(proposal.total)} total · remaining phases invoiced as each begins`
+                    : `50% of ${fmt(proposal.total)}`}
+                </p>
+
+                {!paid && checkoutUrl && (
+                  <a
+                    href={checkoutUrl}
+                    className="sign-btn"
+                    style={{ marginTop: 16, textDecoration: "none", textAlign: "center" }}
+                  >
+                    Pay {fmt(deposit)} &amp; Start
+                  </a>
+                )}
+                {!paid && !checkoutUrl && (
+                  <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 14, lineHeight: 1.6 }}>
+                    Your invoice is being prepared and will arrive at {proposal.email} shortly.
+                  </p>
+                )}
               </div>
+
+              {proposal.contract_pdf_url && (
+                <a
+                  href={proposal.contract_pdf_url}
+                  target="_blank"
+                  rel="noopener"
+                  style={{ display: "inline-block", marginTop: 16, fontSize: 12.5, color: "var(--text-secondary)", textDecoration: "underline" }}
+                >
+                  Download the signed agreement (PDF)
+                </a>
+              )}
             </div>
           ) : (
             <div>
@@ -368,7 +438,7 @@ export default function ContractPage() {
                     style={{ marginTop: 2 }}
                   />
                   <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                    I have read and agree to the Scope of Work and Terms & Conditions above. I understand the 50% deposit is due before work begins.
+                    I have read and agree to the Scope of Work and Terms &amp; Conditions above. I understand {phaseBilled ? `${depositLabel.toLowerCase()} is due before work begins` : "the 50% deposit is due before work begins"}.
                   </p>
                 </label>
 
@@ -377,11 +447,17 @@ export default function ContractPage() {
                   disabled={!signedName.trim() || !agreed || signing}
                   onClick={handleSign}
                 >
-                  {signing ? "Signing…" : `Sign & Confirm — ${fmt(proposal.total)} Total`}
+                  {signing ? "Signing…" : `Sign & Pay ${fmt(deposit)} to Start`}
                 </button>
 
+                {signError && (
+                  <p style={{ fontSize: 12.5, color: "#F87171", textAlign: "center", marginTop: 12, lineHeight: 1.6 }}>
+                    {signError}
+                  </p>
+                )}
+
                 <p style={{ fontSize: 11.5, color: "var(--text-secondary)", textAlign: "center", marginTop: 10 }}>
-                  Deposit of {fmt(Math.round(proposal.total * 0.5))} due to start. Invoice sent to {proposal.email}.
+                  Signing takes you straight to checkout for {fmt(deposit)}. Total contract value {fmt(proposal.total)}.
                 </p>
               </div>
             </div>

@@ -77,7 +77,7 @@ function buildEmail(lead: Record<string, string | null>, step: number) {
   const bodies: Record<number, string> = {
     1: lead.website_url
       // Has a website — upgrade pitch
-      ? `${greeting}\n\nI build websites for roofing companies and came across ${biz} while researching contractors in ${city}.\n\nI put together a faster, more modern version of your site — took me a few hours. Thought it was worth showing you before I moved on.\n\nTake a look:\n${previewUrl}\n\nHappy to walk you through it if you're curious.\n\nMichael\nWood Fired Designs\n\nP.S. Not interested? Just say the word and I won't reach out again.`
+      ? `${greeting}\n\nI build websites for roofing companies and came across ${biz} while researching contractors in ${city}.\n\nI put together a faster, more modern version of your site. Thought it was worth showing you before I moved on.\n\nTake a look:\n${previewUrl}\n\nHappy to walk you through it if you're curious.\n\nMichael\nWood Fired Designs\n\nP.S. Not interested? Just say the word and I won't reach out again.`
       // No website — new site pitch
       : `${greeting}\n\nI noticed ${biz} doesn't have a website yet. Most of your competitors in ${city} do — and that's where homeowners are searching first.\n\nI built a free preview to show you what one could look like:\n${previewUrl}\n\nTakes 30 seconds to look at. No strings attached.\n\nMichael\nWood Fired Designs\n\nP.S. Not interested? Just let me know and I'll leave you alone.`,
 

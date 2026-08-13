@@ -32,9 +32,13 @@ const STATUS_LABELS: Record<string, string> = {
   delivered: "Delivered",
 };
 const PACKAGE_LABELS: Record<string, string> = {
-  starter_site: "Starter Site",
-  full_website: "Full Website",
-  brand_and_site: "Brand + Site",
+  starter_site:        "Starter Site",
+  full_website:        "Full Website",
+  brand_and_site:      "Brand + Site",
+  pp_brand_foundation: "Brand Foundation",
+  pp_full_system:      "Full System",
+  pp_pitch_deck:       "Pitch Deck",
+  pp_bundle:           "Full System + Pitch Deck Bundle",
 };
 
 type IntakeRow = Record<string, unknown>;
@@ -126,9 +130,20 @@ function PortalPage() {
 
         {/* Payment success banner */}
         {justPaid && (
-          <div style={{ background: "rgba(74,222,128,0.08)", border: "1.5px solid var(--savings)", borderRadius: 10, padding: "16px 20px", marginBottom: 28, display: "flex", gap: 12, alignItems: "center" }}>
-            <span style={{ fontSize: 20 }}>✓</span>
-            <p style={{ fontSize: 13.5, color: "var(--savings)", fontWeight: 500 }}>Payment received. You&apos;re officially in the queue. Michael will be in touch within 1 business day.</p>
+          <div style={{ background: "rgba(74,222,128,0.08)", border: "1.5px solid var(--savings)", borderRadius: 10, padding: "24px 28px", marginBottom: 28 }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 16 }}>
+              <span style={{ fontSize: 22, lineHeight: 1 }}>✓</span>
+              <div>
+                <p style={{ fontSize: 15, color: "var(--savings)", fontWeight: 700, margin: "0 0 4px" }}>Payment confirmed — you&apos;re in.</p>
+                <p style={{ fontSize: 13.5, color: "#9A9088", margin: 0, lineHeight: 1.6 }}>Michael will be in touch within 1 business day. A confirmation email with your portal link is on its way.</p>
+              </div>
+            </div>
+            <a
+              href={`/portal/${id}`}
+              style={{ display: "inline-block", padding: "11px 22px", background: "var(--savings)", color: "#111", borderRadius: 8, textDecoration: "none", fontSize: 13.5, fontWeight: 700 }}
+            >
+              Go to My Portal →
+            </a>
           </div>
         )}
 
@@ -168,9 +183,9 @@ function PortalPage() {
         {/* What's next */}
         {!depositPaid && !fullPaid && (
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "22px", marginBottom: 20 }}>
-            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 14 }}>What's Next</p>
+            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 14 }}>After You Pay Your Deposit</p>
             <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 18 }}>
-              Michael will be in touch within <strong style={{ color: "var(--text-primary)" }}>24 hours</strong> to walk you through the scope and answer any questions. No pressure to do anything right now.
+              Michael will be in touch within <strong style={{ color: "var(--text-primary)" }}>24 hours</strong> to walk you through the scope and answer any questions.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <a href="https://calendly.com/woodfireddesigns/discovery" target="_blank" rel="noopener noreferrer" className="pay-btn"
@@ -183,8 +198,8 @@ function PortalPage() {
                 </a>
               )}
               {intake?.status === "signed" && (
-                <a href={`/portal/${id}/pay`} style={{ display: "block", padding: "13px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text-secondary)", textAlign: "center", textDecoration: "none", fontSize: 13.5, fontWeight: 500 }}>
-                  Pay Deposit & Start →
+                <a href={`/portal/${id}/pay`} style={{ display: "block", padding: "16px", background: "var(--savings)", borderRadius: 8, color: "#111", textAlign: "center", textDecoration: "none", fontSize: 15, fontWeight: 700, letterSpacing: "0.01em", boxShadow: "0 0 24px rgba(74,222,128,0.35)" }}>
+                  Pay Deposit & Start Your Project →
                 </a>
               )}
             </div>

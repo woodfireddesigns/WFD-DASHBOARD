@@ -140,6 +140,52 @@ export async function sendContractSigned(data: {
   });
 }
 
+export async function sendPaymentConfirmationToClient(data: {
+  firstName: string;
+  email: string;
+  pkg: string;
+  amount: number;
+  paymentType: string;
+  portalToken: string;
+}) {
+  const portalUrl = `https://wfd-dashboard.vercel.app/portal/${data.portalToken}`;
+  const isDeposit = data.paymentType === "deposit";
+
+  await getResend().emails.send({
+    from: "Michael @ Wood Fired Designs <michael@woodfireddesigns.com>",
+    to: data.email,
+    subject: `You're in — payment confirmed, ${data.firstName}`,
+    html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#1a1713;font-family:'DM Sans',Arial,sans-serif">
+  <div style="max-width:560px;margin:40px auto;background:#201e1a;border:1px solid #333028;border-radius:10px;overflow:hidden">
+    <div style="background:#4ADE80;padding:16px 28px">
+      <p style="margin:0;color:#111;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase">Wood Fired Designs — Payment Confirmed</p>
+    </div>
+    <div style="padding:32px">
+      <h2 style="margin:0 0 8px;color:#F2EDE8;font-size:22px;font-weight:700">You're officially in, ${data.firstName}.</h2>
+      <p style="color:#9A9088;font-size:14px;line-height:1.7;margin:0 0 24px">
+        ${isDeposit
+          ? `Your ${fmt(data.amount)} deposit is in. I'll be in touch within 1 business day to kick things off. The remaining balance is invoiced at delivery.`
+          : `Your full payment of ${fmt(data.amount)} is received. Work starts soon — I'll be in touch within 1 business day.`
+        }
+      </p>
+      <p style="color:#9A9088;font-size:14px;line-height:1.7;margin:0 0 28px">
+        Your client portal is where you'll track project progress, review deliverables, and stay in the loop. Bookmark it — you'll need it.
+      </p>
+      <a href="${portalUrl}" style="display:block;padding:14px 28px;background:#4ADE80;color:#111;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;text-align:center">
+        Go to My Portal →
+      </a>
+      <p style="margin:20px 0 0;color:#5A5248;font-size:12px;text-align:center">
+        ${portalUrl}
+      </p>
+    </div>
+    <div style="padding:16px 28px;border-top:1px solid #333028">
+      <p style="margin:0;color:#5A5248;font-size:11px">woodfireddesigns.com · michael@woodfireddesigns.com</p>
+    </div>
+  </div>
+</body></html>`,
+  });
+}
+
 export async function sendInvoicePaid(data: {
   name: string;
   business: string;

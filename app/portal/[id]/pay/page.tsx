@@ -27,17 +27,25 @@ const CSS = `
 `;
 
 const PACKAGE_LABELS: Record<string, string> = {
-  starter_site: "Starter Site",
-  full_website: "Full Website",
-  brand_and_site: "Brand + Site",
-  test_package: "Test Package",
+  starter_site:        "Starter Site",
+  full_website:        "Full Website",
+  brand_and_site:      "Brand + Site",
+  test_package:        "Test Package",
+  pp_brand_foundation: "Brand Foundation",
+  pp_full_system:      "Full System",
+  pp_pitch_deck:       "Pitch Deck",
+  pp_bundle:           "Full System + Pitch Deck Bundle",
 };
 
 const BASE_PRICES: Record<string, number> = {
-  starter_site: 1200,
-  full_website: 2400,
-  brand_and_site: 4200,
-  test_package: 19,
+  starter_site:        1200,
+  full_website:        2400,
+  brand_and_site:      4200,
+  test_package:        19,
+  pp_brand_foundation: 3500,
+  pp_full_system:      4300,
+  pp_pitch_deck:       1500,
+  pp_bundle:           5550,
 };
 
 export default function PayPage() {
@@ -60,7 +68,7 @@ export default function PayPage() {
       .then(({ data }) => { setIntake(data); setLoading(false); });
   }, [id]);
 
-  async function checkout(paymentType: "deposit" | "full") {
+  async function checkout(paymentType: "deposit" | "full", paymentMethod: "card" | "bank" = "card") {
     if (!intake) return;
     setProcessing(paymentType);
     setStripeError(null);
@@ -68,7 +76,7 @@ export default function PayPage() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intakeId: intake.id, paymentType }),
+        body: JSON.stringify({ intakeId: intake.id, paymentType, paymentMethod }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error ?? `Server error ${res.status}`);
@@ -98,6 +106,12 @@ export default function PayPage() {
   const deposit = Math.round(price * 0.5);
   const fullDiscounted = Math.round(price * 0.95);
   const savings = price - fullDiscounted;
+
+  function cardFee(amount: number): number {
+    return Math.round(((amount + 0.30) / (1 - 0.029)) * 100) / 100 - amount;
+  }
+  const depositFee = Math.round(cardFee(deposit));
+  const fullFee = Math.round(cardFee(fullDiscounted));
   const pkg = intake.package as string;
   const clientName = `${intake.first_name} ${intake.last_name}`.trim();
 
@@ -126,14 +140,14 @@ export default function PayPage() {
             <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 22 }}>
               Pay half now to get started. The remaining ${deposit.toLocaleString()} is invoiced at delivery before final files transfer.
             </p>
-            <button
-              className="pay-btn"
-              onClick={() => checkout("deposit")}
-              disabled={processing !== null}
-              style={{ background: "var(--accent)", color: "#fff" }}
-            >
-              {processing === "deposit" ? "Redirecting…" : "Pay Deposit →"}
-            </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button className="pay-btn" onClick={() => checkout("deposit", "card")} disabled={processing !== null} style={{ background: "var(--accent)", color: "#fff" }}>
+                {processing === "deposit" ? "Redirecting…" : `Pay by Card (+$${depositFee} fee) →`}
+              </button>
+              <button className="pay-btn" onClick={() => checkout("deposit", "bank")} disabled={processing !== null} style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", fontSize: 13 }}>
+                Pay by Bank Transfer (no card fee)
+              </button>
+            </div>
           </div>
 
           {/* Option 2 — Full pay */}
@@ -153,14 +167,14 @@ export default function PayPage() {
             <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 22 }}>
               Pay everything upfront and save 5%. No balance due at delivery. Files transfer immediately on completion.
             </p>
-            <button
-              className="pay-btn"
-              onClick={() => checkout("full")}
-              disabled={processing !== null}
-              style={{ background: "var(--savings)", color: "#111" }}
-            >
-              {processing === "full" ? "Redirecting…" : `Pay $${fullDiscounted.toLocaleString()} & Save →`}
-            </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button className="pay-btn" onClick={() => checkout("full", "card")} disabled={processing !== null} style={{ background: "var(--savings)", color: "#111" }}>
+                {processing === "full" ? "Redirecting…" : `Pay $${fullDiscounted.toLocaleString()} by Card (+$${fullFee} fee) →`}
+              </button>
+              <button className="pay-btn" onClick={() => checkout("full", "bank")} disabled={processing !== null} style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", fontSize: 13 }}>
+                Pay by Bank Transfer (no card fee)
+              </button>
+            </div>
           </div>
         </div>
 

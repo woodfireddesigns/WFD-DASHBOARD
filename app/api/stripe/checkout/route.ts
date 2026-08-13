@@ -13,6 +13,7 @@ const BASE_PRICES: Record<string, number> = {
   packaging_single: 1200, packaging_system: 2800,
   photo_starter: 800, photo_pro: 1500, photo_campaign: 2800,
   merch_single: 800, merch_line: 1800,
+  pp_brand_foundation: 3500, pp_full_system: 4300, pp_pitch_deck: 1500, pp_bundle: 5550,
 };
 
 const PACKAGE_LABELS: Record<string, string> = {
@@ -21,6 +22,7 @@ const PACKAGE_LABELS: Record<string, string> = {
   packaging_single: "Packaging — Single SKU", packaging_system: "Packaging — Multi-SKU System",
   photo_starter: "AI Photography — Starter", photo_pro: "AI Photography — Pro", photo_campaign: "AI Photography — Campaign",
   merch_single: "Merch Design — Single Item", merch_line: "Merch Design — Full Line",
+  pp_brand_foundation: "Pitcher & Pour — Brand Foundation", pp_full_system: "Pitcher & Pour — Full System", pp_pitch_deck: "Pitcher & Pour — Pitch Deck", pp_bundle: "Pitcher & Pour — Full System + Pitch Deck Bundle",
 };
 
 const INTEGRATION_PRICES: Record<string, number> = {
@@ -42,7 +44,8 @@ export async function POST(req: NextRequest) {
   const stripe = new Stripe(key);
 
   try {
-    const { intakeId, paymentType } = await req.json();
+    const reqBody = await req.json();
+    const { intakeId, paymentType } = reqBody;
 
     const { data: intake, error: dbErr } = await supabase
       .from("intake_forms")
@@ -117,14 +120,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not calculate project price. Contact michael@woodfireddesigns.com." }, { status: 400 });
     }
 
+    // paymentMethod: "card" adds a processing fee line item; "bank" skips it (ACH ~$5 cap)
+    const paymentMethod = reqBody?.paymentMethod === "bank" ? "bank" : "card";
+
+    function grossUp(amount: number): number {
+      return Math.round(((amount + 0.30) / (1 - 0.029)) * 100) / 100;
+    }
+    function feeLineItem(grossAmount: number, netAmount: number) {
+      const fee = Math.round((grossAmount - netAmount) * 100);
+      return {
+        price_data: {
+          currency: "usd",
+          unit_amount: fee,
+          product_data: { name: "Credit Card Processing Fee (2.9% + $0.30)" },
+        },
+        quantity: 1,
+      };
+    }
+
     const origin = req.nextUrl.origin;
 
     if (paymentType === "deposit") {
       const depositAmount = Math.round(subtotal * 0.5);
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        customer_email: intake.email as string,
-        line_items: [{
+      const depositLineItems: typeof lineItems = [
+        {
           price_data: {
             currency: "usd",
             unit_amount: depositAmount * 100,
@@ -134,7 +153,16 @@ export async function POST(req: NextRequest) {
             },
           },
           quantity: 1,
-        }],
+        },
+      ];
+      if (paymentMethod === "card") {
+        depositLineItems.push(feeLineItem(grossUp(depositAmount), depositAmount));
+      }
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        customer_email: intake.email as string,
+        payment_method_types: paymentMethod === "bank" ? ["us_bank_account"] : ["card"],
+        line_items: depositLineItems,
         metadata: { intake_id: intakeId, payment_type: "deposit" },
         success_url: `${origin}/portal/${intake.portal_token}?paid=1`,
         cancel_url: `${origin}/portal/${intake.portal_token}/pay`,
@@ -151,10 +179,15 @@ export async function POST(req: NextRequest) {
         name: "Full Payment — 5% Discount",
       });
 
+      const fullLineItems = paymentMethod === "card"
+        ? [...lineItems, feeLineItem(grossUp(subtotal), subtotal)]
+        : [...lineItems];
+
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         customer_email: intake.email as string,
-        line_items: lineItems,
+        payment_method_types: paymentMethod === "bank" ? ["us_bank_account"] : ["card"],
+        line_items: fullLineItems,
         discounts: [{ coupon: coupon.id }],
         metadata: { intake_id: intakeId, payment_type: "full" },
         success_url: `${origin}/portal/${intake.portal_token}?paid=1`,
