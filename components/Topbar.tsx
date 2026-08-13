@@ -30,7 +30,7 @@ export default function Topbar() {
     }}>
       <div>
         <h1 style={{
-          fontFamily: "Anton, sans-serif", fontSize: 18, fontWeight: 400,
+          fontFamily: "Oswald, sans-serif", fontSize: 18, fontWeight: 400,
           color: "#F2EDE8", textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.1,
         }}>
           {meta.title}

@@ -35,7 +35,7 @@ export default function Sidebar() {
       <div style={{ padding: "20px 16px 16px" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/favicon.png" alt="Wood Fired Designs" style={{ width: 32, height: 32, objectFit: "contain", marginBottom: 8 }} />
-        <p style={{ fontFamily: "Anton, sans-serif", fontSize: 11, letterSpacing: "0.2em", color: "#FF6B2B", textTransform: "uppercase" }}>
+        <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 11, letterSpacing: "0.2em", color: "#FF6B2B", textTransform: "uppercase" }}>
           Wood Fired
         </p>
         <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 9, letterSpacing: "0.14em", color: "#3D342C", textTransform: "uppercase" }}>
