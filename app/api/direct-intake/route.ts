@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { sendQuestionnaireStarted } from "@/lib/email";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Service role, with no anon fallback. Falling back meant a missing key
+// downgraded this route to a client RLS denies, so intake silently stopped
+// recording instead of failing loudly.
+const supabase = supabaseAdmin();
 
 const PACKAGE_PRICES: Record<string, number> = {
   pp_brand_foundation: 3500,

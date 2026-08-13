@@ -1,5 +1,5 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, sessionIsValid } from "@/lib/session";
 
 /**
  * Closes the internal dashboard to the public.
@@ -9,14 +9,12 @@ import { SESSION_COOKIE, sessionIsValid } from "@/lib/session";
  * domain -- which clients must reach -- removed that door for every route,
  * including /clients, /invoices and /leads.
  *
- * So the app needs its own gate. Client-facing routes stay open; everything
- * else requires the session cookie.
- *
- * This is the page-level gate only. It does not protect the tables from a
- * direct PostgREST call with the anon key, which ships in the public bundle --
- * `roofing_leads` is anon-readable and `projects` is anon-writable. Those
- * policies need tightening separately; this stops the dashboard being browsable
- * by anyone with the URL.
+ * The session is a real Supabase session rather than a shared password, because
+ * the dashboard also needs Postgres to know who is asking: RLS grants the
+ * `authenticated` role access to the dashboard tables and grants `anon` nothing.
+ * A password cookie would have gated the pages while leaving every query still
+ * running as anon, which is the state that made adding a task silently do
+ * nothing.
  */
 
 /**
@@ -25,12 +23,11 @@ import { SESSION_COOKIE, sessionIsValid } from "@/lib/session";
  * Prefix rules, so `/portal` covers `/portal/<token>/pay`. Note what is NOT
  * here: `/proposal` on its own is the internal proposal builder, while
  * `/proposal/<id>` is the client's contract. A prefix rule for `/proposal`
- * would publish the builder, so the contract page is matched by shape below
- * instead.
+ * would publish the builder, so the contract page is matched by shape below.
  */
 const PUBLIC_PREFIXES = [
   "/login",
-  "/api/auth",
+  "/auth",
   // Client-facing intake and quoting.
   "/onboard",
   "/quick",
@@ -63,23 +60,50 @@ export function isPublic(pathname: string): boolean {
   );
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (isPublic(pathname)) return NextResponse.next();
+  if (isPublic(pathname)) return NextResponse.next({ request });
 
-  // A script or cron carries a shared secret instead of a cookie -- the
+  // A script or cron carries a shared secret instead of a session -- the
   // wfd-contract CLI on /api/proposals, the reminder cron on /api/reminders.
   // Presence of the header is not authorisation; it only buys the request the
   // right to reach the route, which checks the secret properly. Redirecting
   // these to /login is how a CLI gets an HTML login page instead of an error.
   if (request.headers.get("authorization") !== null) {
-    return NextResponse.next();
+    return NextResponse.next({ request });
   }
 
-  if (sessionIsValid(request.cookies.get(SESSION_COOKIE)?.value, Math.floor(Date.now() / 1000))) {
-    return NextResponse.next();
-  }
+  let response = NextResponse.next({ request });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          for (const { name, value } of cookiesToSet) {
+            request.cookies.set(name, value);
+          }
+          response = NextResponse.next({ request });
+          for (const { name, value, options } of cookiesToSet) {
+            response.cookies.set(name, value, options);
+          }
+        },
+      },
+    }
+  );
+
+  // getUser, not getSession: this revalidates the token with Supabase rather
+  // than trusting a cookie the browser handed us.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user !== null) return response;
 
   // An unauthenticated API call should get a 401 it can read, not a redirect to
   // a login page it cannot render.

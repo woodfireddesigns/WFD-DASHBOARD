@@ -1,21 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { supabase } from "@/lib/supabase";
 
 /**
- * The sign-in gate for the internal dashboard.
+ * Sign-in for the internal dashboard.
  *
- * Uses the forge palette inline, matching the other standalone pages in this
- * app (portal, proposal) rather than the dashboard shell, because this page
- * renders before a session exists and outside that shell.
+ * Signs in against Supabase rather than a shared password, because the session
+ * is doing two jobs: it lets the proxy through, and it gives every dashboard
+ * query the `authenticated` role that RLS actually grants access to.
+ *
+ * Styled inline with the forge palette, matching the other standalone pages in
+ * this app, because this renders outside the dashboard shell.
  */
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") ?? "/";
 
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -25,28 +29,45 @@ function LoginForm() {
     setPending(true);
     setError(null);
 
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
-      const data = (await res.json()) as { error?: string };
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
 
-      if (!res.ok) {
-        setError(data.error ?? "Sign-in failed.");
-        setPending(false);
-        return;
-      }
-
-      // Replace, not push: the login page should not sit in the back stack.
-      router.replace(next.startsWith("/") ? next : "/");
-      router.refresh();
-    } catch {
-      setError("Could not reach the server. Check your connection and try again.");
+    if (signInError) {
+      // Supabase says "Invalid login credentials" for both a wrong password and
+      // an unknown address, which is the right amount to say.
+      setError(signInError.message);
       setPending(false);
+      return;
     }
+
+    // Replace, not push: the login page should not sit in the back stack.
+    router.replace(next.startsWith("/") ? next : "/");
+    router.refresh();
   }
+
+  const field: React.CSSProperties = {
+    width: "100%",
+    background: "#2a2723",
+    border: "1px solid #333028",
+    borderRadius: 6,
+    color: "#F2EDE8",
+    fontSize: 14,
+    padding: "11px 14px",
+    outline: "none",
+    marginBottom: 12,
+  };
+
+  const label: React.CSSProperties = {
+    display: "block",
+    fontSize: 10,
+    fontWeight: 600,
+    letterSpacing: "0.12em",
+    color: "#5A5248",
+    textTransform: "uppercase",
+    marginBottom: 7,
+  };
 
   return (
     <form onSubmit={submit} style={{ width: "100%", maxWidth: 340 }}>
@@ -64,11 +85,13 @@ function LoginForm() {
       </p>
       <h1
         style={{
-          fontSize: 26,
-          fontWeight: 800,
+          fontFamily: "'Oswald', 'Arial Narrow', sans-serif",
+          fontSize: 28,
+          fontWeight: 600,
           color: "#F2EDE8",
+          textTransform: "uppercase",
+          letterSpacing: "0.025em",
           margin: "0 0 6px",
-          letterSpacing: "-0.02em",
         }}
       >
         Dashboard
@@ -77,43 +100,34 @@ function LoginForm() {
         This part of the site is private. Client contract and payment links do not need this.
       </p>
 
-      <label
-        htmlFor="password"
-        style={{
-          display: "block",
-          fontSize: 10,
-          fontWeight: 600,
-          letterSpacing: "0.12em",
-          color: "#5A5248",
-          textTransform: "uppercase",
-          marginBottom: 8,
-        }}
-      >
+      <label htmlFor="email" style={label}>
+        Email
+      </label>
+      <input
+        id="email"
+        type="email"
+        autoFocus
+        autoComplete="username"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        style={field}
+      />
+
+      <label htmlFor="password" style={label}>
         Password
       </label>
       <input
         id="password"
         type="password"
-        autoFocus
         autoComplete="current-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        style={{
-          width: "100%",
-          background: "#2a2723",
-          border: "1px solid #333028",
-          borderRadius: 6,
-          color: "#F2EDE8",
-          fontSize: 14,
-          padding: "11px 14px",
-          outline: "none",
-          marginBottom: 14,
-        }}
+        style={{ ...field, marginBottom: 16 }}
       />
 
       <button
         type="submit"
-        disabled={pending || password === ""}
+        disabled={pending || email === "" || password === ""}
         style={{
           width: "100%",
           padding: 13,
@@ -123,8 +137,8 @@ function LoginForm() {
           borderRadius: 8,
           fontSize: 14.5,
           fontWeight: 600,
-          cursor: pending || password === "" ? "not-allowed" : "pointer",
-          opacity: pending || password === "" ? 0.4 : 1,
+          cursor: pending ? "not-allowed" : "pointer",
+          opacity: pending || email === "" || password === "" ? 0.4 : 1,
         }}
       >
         {pending ? "Signing in…" : "Sign in"}
@@ -161,7 +175,7 @@ export default function LoginPage() {
         alignItems: "center",
         justifyContent: "center",
         padding: 24,
-        fontFamily: "system-ui, -apple-system, sans-serif",
+        fontFamily: "'DM Sans', system-ui, -apple-system, sans-serif",
       }}
     >
       {/* useSearchParams needs a Suspense boundary to prerender. */}

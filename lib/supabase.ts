@@ -1,9 +1,24 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient(url, key);
+/**
+ * The browser client for every dashboard page.
+ *
+ * createBrowserClient, not createClient: it stores the session in a cookie the
+ * server can also read, so the proxy can check the session and PostgREST sees
+ * the signed-in user's JWT rather than the bare anon key.
+ *
+ * That distinction was the whole bug. With the plain client the dashboard spoke
+ * to Postgres as `anon`, which has no policies on tasks, invoices, habits or
+ * notifications -- so reads returned nothing and writes were discarded without
+ * an error. Adding a task did nothing, and the UI had no way to know.
+ *
+ * Every dashboard page imports this one instance, so signing in fixes all of
+ * them at once.
+ */
+export const supabase = createBrowserClient(url, key);
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Service role: this runs on the server, where the anon key bought nothing
+// except a need for permissive public RLS policies on clients and projects.
+const supabase = supabaseAdmin();
 
 const BASE_PRICES: Record<string, number> = {
   starter_site: 1200, full_website: 2400, brand_and_site: 4200, test_package: 19,
