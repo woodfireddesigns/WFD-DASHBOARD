@@ -128,15 +128,22 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Back + header */}
       <div>
-        <Link href="/projects" className="flex items-center gap-1.5 text-sm text-[#B8AE9A] hover:text-[#6B5F50] mb-4 transition-colors w-fit">
+        {/* Hover brightens. It darkened to #6B5F50 before, which on this dark
+            ground made the link recede exactly when it should respond. */}
+        <Link href="/projects" className="flex items-center gap-1.5 text-sm text-[#B8AE9A] hover:text-[#F2EDE8] mb-4 transition-colors w-fit">
           <ArrowLeft size={14} /> All Projects
         </Link>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-mono text-[#B8AE9A] mb-1">{project.client?.name ?? "—"}</p>
-            <h1 className="headline text-[32px] text-[#2C2A28]">{project.name}</h1>
+            {/* No colour class: this heading sits on the dark page ground, not
+                inside a cream card, so it inherits #F2EDE8 from body like the
+                other page headings. #2C2A28 here was black on black. */}
+            <h1 className="headline text-[32px]">{project.name}</h1>
+            {/* #6B5F50 on the dark ground was about 2:1 contrast. #B8AE9A
+                matches the client name above it and stays legible. */}
             {project.type && (
-              <p className="text-sm text-[#6B5F50] mt-1">{TYPE_LABELS[project.type]}</p>
+              <p className="text-sm text-[#B8AE9A] mt-1">{TYPE_LABELS[project.type]}</p>
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
