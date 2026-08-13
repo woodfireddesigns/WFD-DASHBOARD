@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * This route writes proposals, clients and projects, so it cannot stay open to
@@ -35,6 +33,16 @@ export async function POST(req: NextRequest) {
       { status: 401 }
     );
   }
+  // Service role, not anon. `proposals` has RLS enabled with no policies at all,
+  // and `projects` has no anon INSERT policy, so the anon client silently failed
+  // both writes -- the same RLS trap that stopped contract signing persisting.
+  let supabase: ReturnType<typeof supabaseAdmin>;
+  try {
+    supabase = supabaseAdmin();
+  } catch (err) {
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+  }
+
   try {
     const body = await req.json();
     const {
@@ -126,7 +134,16 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ proposalId: proposal.id, projectId: project?.id });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    // String(err) on a Supabase error object yields "[object Object]", which is
+    // what this route reported for every failure and why the RLS denial above
+    // went unnoticed. Pull the message out deliberately.
+    const msg =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message: unknown }).message)
+          : JSON.stringify(err);
+    console.error("proposal create:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
