@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme inline {
@@ -35,7 +35,7 @@
   --color-sidebar-active: #1E1A16;
 
   /* Fonts */
-  --font-display: 'Anton', Impact, sans-serif;
+  --font-display: 'Oswald', 'Arial Narrow', sans-serif;
   --font-body:    'Inter', system-ui, sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
 }
@@ -55,10 +55,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Anton — always uppercase */
+/* Oswald — always uppercase.
+   Anton had one weight and it was very heavy, so headings got their impact for
+   free. Oswald's 400 is much lighter; 600 carries the same weight at display
+   sizes while leaving 400 and 500 available for the small labels that were
+   unreadable in Anton. */
 .font-display,
 h1, h2, h3 {
-  font-family: 'Anton', Impact, sans-serif;
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
   line-height: 1.05;

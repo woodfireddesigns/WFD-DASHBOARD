@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --black:  #080808;
@@ -14,7 +14,7 @@ const CSS = `
     --yellow: #FFE600;
     --white:  #FFFFFF;
     --muted:  #666666;
-    --font-d: 'Anton', Impact, sans-serif;
+    --font-d: 'Oswald', 'Arial Narrow', sans-serif;
     --font-b: 'DM Sans', sans-serif;
   }
   html { scroll-behavior: smooth; }

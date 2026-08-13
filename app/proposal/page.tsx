@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 // ── CSS-in-JS global styles injected once ─────────────────────────────────────
 
 const GLOBAL_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   h1,h2,h3{text-transform:uppercase;letter-spacing:0.02em;}
   :root {
@@ -20,7 +20,7 @@ const GLOBAL_CSS = `
     --text-secondary: #9A9088;
     --text-muted:     #5A5248;
     --savings:        #4ADE80;
-    --font-d:         'Anton', sans-serif;
+    --font-d:         'Oswald', sans-serif;
     --font-b:         'DM Sans', sans-serif;
     --ease:           cubic-bezier(0.16,1,0.3,1);
   }

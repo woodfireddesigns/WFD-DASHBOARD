@@ -67,7 +67,7 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string 
       boxShadow: accent ? "0 0 20px rgba(255,107,43,0.06)" : "none",
     }}>
       <p style={{ fontSize: 10.5, fontWeight: 500, letterSpacing: "0.1em", color: "#5A4E46", textTransform: "uppercase", marginBottom: 8 }}>{label}</p>
-      <p style={{ fontFamily: "Anton, sans-serif", fontSize: 32, color: accent ? "#FF6B2B" : "#F2EDE8", lineHeight: 1, letterSpacing: "0.02em" }}>{value}</p>
+      <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 32, color: accent ? "#FF6B2B" : "#F2EDE8", lineHeight: 1, letterSpacing: "0.02em" }}>{value}</p>
       {sub && <p style={{ fontSize: 11.5, color: "#5A4E46", marginTop: 6 }}>{sub}</p>}
     </div>
   );
@@ -173,7 +173,7 @@ export default function HomePage() {
 
       {/* Greeting */}
       <div>
-        <h2 style={{ fontFamily: "Anton, sans-serif", fontSize: 28, color: "#F2EDE8", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 4 }}>
+        <h2 style={{ fontFamily: "Oswald, sans-serif", fontSize: 28, color: "#F2EDE8", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 4 }}>
           {greeting}, Michael.
         </h2>
         <p style={{ fontSize: 13.5, color: "#5A4E46" }}>
@@ -201,7 +201,7 @@ export default function HomePage() {
         <div style={{ background: "#161310", border: "1px solid #2A241E", borderRadius: 12, padding: "22px 24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
-              <p style={{ fontFamily: "Anton, sans-serif", fontSize: 15, color: "#F2EDE8", textTransform: "uppercase", letterSpacing: "0.04em" }}>Daily Habits</p>
+              <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 15, color: "#F2EDE8", textTransform: "uppercase", letterSpacing: "0.04em" }}>Daily Habits</p>
               <p style={{ fontSize: 11.5, color: "#5A4E46", marginTop: 2 }}>+{todayPoints} pts earned today</p>
             </div>
             <button onClick={() => setAddingHabit(true)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,107,43,0.1)", border: "1px solid rgba(255,107,43,0.2)", borderRadius: 6, color: "#FF6B2B", fontSize: 12, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
@@ -283,13 +283,13 @@ export default function HomePage() {
           <div style={{ background: "#161310", border: "1px solid #2A241E", borderRadius: 12, padding: "22px 24px", flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
               <Trophy size={16} color="#FF6B2B" />
-              <p style={{ fontFamily: "Anton, sans-serif", fontSize: 13, color: "#F2EDE8", textTransform: "uppercase", letterSpacing: "0.04em" }}>365-Day Journey</p>
+              <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 13, color: "#F2EDE8", textTransform: "uppercase", letterSpacing: "0.04em" }}>365-Day Journey</p>
             </div>
 
             {/* Level */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-                <p style={{ fontFamily: "Anton, sans-serif", fontSize: 22, color: level.color, textTransform: "uppercase", letterSpacing: "0.03em" }}>{level.name}</p>
+                <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 22, color: level.color, textTransform: "uppercase", letterSpacing: "0.03em" }}>{level.name}</p>
                 <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#5A4E46" }}>LVL {level.levelIndex}</p>
               </div>
               <div style={{ height: 6, background: "#1E1A16", borderRadius: 99, overflow: "hidden" }}>
@@ -345,7 +345,7 @@ export default function HomePage() {
           onClick={(e) => { if (e.target === e.currentTarget) setEditingHabit(null); }}>
           <div style={{ background: "#161310", border: "1px solid #2A241E", borderRadius: 12, padding: 24, width: 360 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <p style={{ fontFamily: "Anton, sans-serif", fontSize: 16, color: "#F2EDE8", textTransform: "uppercase" }}>Edit Habit</p>
+              <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 16, color: "#F2EDE8", textTransform: "uppercase" }}>Edit Habit</p>
               <button onClick={() => setEditingHabit(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#5A4E46" }}><X size={16} /></button>
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>

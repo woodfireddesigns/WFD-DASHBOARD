@@ -82,7 +82,7 @@ function KpiCard({ icon: Icon, label, value, accent }: { icon: React.ElementType
         <Icon size={15} color={accent} strokeWidth={1.75} />
       </div>
       <div>
-        <div style={{ fontSize: 24, fontWeight: 700, color: "#1E1C1A", lineHeight: 1, fontFamily: "Anton, sans-serif", letterSpacing: "0.025em" }}>
+        <div style={{ fontSize: 24, fontWeight: 700, color: "#1E1C1A", lineHeight: 1, fontFamily: "Oswald, sans-serif", letterSpacing: "0.025em" }}>
           {value.toLocaleString()}
         </div>
         <div style={{ fontSize: 10, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 3 }}>{label}</div>

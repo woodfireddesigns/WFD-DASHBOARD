@@ -2,13 +2,13 @@
 import { useState, useEffect } from "react";
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;}
   :root{
     --bg:#1a1713;--bg-surface:#201e1a;--bg-elevated:#2a2723;
     --border:#333028;--accent:#FF4D00;--accent-dim:rgba(255,77,0,0.1);
     --text-primary:#F2EDE8;--text-secondary:#9A9088;--text-muted:#5A5248;
-    --font-d:'Anton',sans-serif;--font-b:'DM Sans',sans-serif;
+    --font-d:'Oswald',sans-serif;--font-b:'DM Sans',sans-serif;
     --ease:cubic-bezier(0.16,1,0.3,1);
   }
   body{background:var(--bg);color:var(--text-primary);font-family:var(--font-b);}
