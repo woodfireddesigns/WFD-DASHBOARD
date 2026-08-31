@@ -28,7 +28,7 @@ const SEQUENCES = [
     id: "website",
     label: "Website Only",
     description: "Starter Site or Full Website",
-    color: "#1E5FAA",
+    color: "#5B9BD5",
     steps: [
       { day: 0,  label: "Contract + Invoice",    note: "50% upfront. Attach scope doc with page list and features." },
       { day: 1,  label: "Welcome Email",         note: "Confirm start date, what you need from them (copy, photos, login access)." },
@@ -45,7 +45,7 @@ const SEQUENCES = [
     id: "photo",
     label: "AI Photography",
     description: "Product photography package",
-    color: "#1E7A3C",
+    color: "#3FB86B",
     steps: [
       { day: 0,  label: "Invoice Sent",          note: "Full payment upfront for photography packages." },
       { day: 1,  label: "Brief Form",            note: "Send product brief: what they're selling, desired mood, surface/background preferences, usage (web, social, print)." },
@@ -59,7 +59,7 @@ const SEQUENCES = [
     id: "retainer",
     label: "MRR Retainer Setup",
     description: "Converting a project client to monthly",
-    color: "#6B6560",
+    color: "#C4B8AE",
     steps: [
       { day: 0,  label: "Retainer Proposal",     note: "Send a clear one-pager: what's included monthly, what's not, response time SLA, price." },
       { day: 2,  label: "Contract Signed",       note: "Month-to-month or 3-month minimum. Auto-renewing. 30-day cancellation notice." },
@@ -81,7 +81,7 @@ function CopyButton({ text }: { text: string }) {
   }
   return (
     <button onClick={copy}
-      style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: copied ? "#1E7A3C" : "#A09890", background: "none", border: "none", cursor: "pointer", padding: "3px 0", transition: "color 0.15s" }}>
+      style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: copied ? "#3FB86B" : "#8F827A", background: "none", border: "none", cursor: "pointer", padding: "3px 0", transition: "color 0.15s" }}>
       <Copy size={11} />{copied ? "Copied" : "Copy"}
     </button>
   );
@@ -174,40 +174,40 @@ function SequenceCard({ seq }: { seq: typeof SEQUENCES[0] }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div style={{ backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 10, overflow: "hidden" }}>
+    <div style={{ backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 10, overflow: "hidden" }}>
       {/* Header */}
       <button
         onClick={() => setOpen(!open)}
         style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "15px 18px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
         <span style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: seq.color, flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
-          <p style={{ fontSize: 13.5, fontWeight: 600, color: "#1E1C1A" }}>{seq.label}</p>
-          <p style={{ fontSize: 11.5, color: "#A09890", marginTop: 1 }}>{seq.description} · {seq.steps.length} steps</p>
+          <p style={{ fontSize: 13.5, fontWeight: 600, color: "#F2EDE8" }}>{seq.label}</p>
+          <p style={{ fontSize: 11.5, color: "#8F827A", marginTop: 1 }}>{seq.description} · {seq.steps.length} steps</p>
         </div>
-        {open ? <ChevronUp size={14} color="#A09890" /> : <ChevronDown size={14} color="#A09890" />}
+        {open ? <ChevronUp size={14} color="#8F827A" /> : <ChevronDown size={14} color="#8F827A" />}
       </button>
 
       {/* Steps */}
       {open && (
-        <div style={{ borderTop: "1px solid #E8E2D8" }}>
+        <div style={{ borderTop: "1px solid #2A241E" }}>
           {seq.steps.map((step, i) => (
-            <div key={i} style={{ display: "flex", gap: 14, padding: "12px 18px", borderTop: i > 0 ? "1px solid #F0EBE1" : "none" }}>
+            <div key={i} style={{ display: "flex", gap: 14, padding: "12px 18px", borderTop: i > 0 ? "1px solid #1E1A16" : "none" }}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 99, backgroundColor: "#F0EBE1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 24, height: 24, borderRadius: 99, backgroundColor: "#1E1A16", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 10, fontFamily: "JetBrains Mono, monospace", fontWeight: 600, color: seq.color }}>
                     {step.day === 0 ? "D0" : `D${step.day}`}
                   </span>
                 </div>
                 {i < seq.steps.length - 1 && (
-                  <div style={{ width: 1, flex: 1, backgroundColor: "#E8E2D8", marginTop: 4, minHeight: 12 }} />
+                  <div style={{ width: 1, flex: 1, backgroundColor: "#1E1A16", marginTop: 4, minHeight: 12 }} />
                 )}
               </div>
               <div style={{ flex: 1, paddingBottom: 4 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: "#1E1C1A" }}>{step.label}</p>
-                  <CheckSquare size={12} color="#C8C0B8" />
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "#F2EDE8" }}>{step.label}</p>
+                  <CheckSquare size={12} color="#8F827A" />
                 </div>
-                <p style={{ fontSize: 12, color: "#6B6560", lineHeight: 1.5 }}>{step.note}</p>
+                <p style={{ fontSize: 12, color: "#C4B8AE", lineHeight: 1.5 }}>{step.note}</p>
               </div>
             </div>
           ))}
@@ -223,23 +223,23 @@ function EmailCard({ tmpl }: { tmpl: typeof EMAIL_TEMPLATES[0] }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div style={{ backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 10, overflow: "hidden" }}>
+    <div style={{ backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 10, overflow: "hidden" }}>
       <button onClick={() => setOpen(!open)}
         style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
         <div style={{ flex: 1 }}>
-          <p style={{ fontSize: 13.5, fontWeight: 600, color: "#1E1C1A" }}>{tmpl.label}</p>
-          <p style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: "#A09890", marginTop: 1 }}>Subject: {tmpl.subject}</p>
+          <p style={{ fontSize: 13.5, fontWeight: 600, color: "#F2EDE8" }}>{tmpl.label}</p>
+          <p style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: "#8F827A", marginTop: 1 }}>Subject: {tmpl.subject}</p>
         </div>
-        {open ? <ChevronUp size={14} color="#A09890" /> : <ChevronDown size={14} color="#A09890" />}
+        {open ? <ChevronUp size={14} color="#8F827A" /> : <ChevronDown size={14} color="#8F827A" />}
       </button>
 
       {open && (
-        <div style={{ borderTop: "1px solid #E8E2D8", padding: "16px 18px" }}>
+        <div style={{ borderTop: "1px solid #2A241E", padding: "16px 18px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-            <p style={{ fontSize: 11, fontFamily: "JetBrains Mono, monospace", color: "#A09890" }}>Subject: {tmpl.subject}</p>
+            <p style={{ fontSize: 11, fontFamily: "JetBrains Mono, monospace", color: "#8F827A" }}>Subject: {tmpl.subject}</p>
             <CopyButton text={`Subject: ${tmpl.subject}\n\n${tmpl.body}`} />
           </div>
-          <pre style={{ fontSize: 12.5, color: "#3D3A38", lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: "Inter, sans-serif", margin: 0, backgroundColor: "#F8F5F0", padding: "14px 16px", borderRadius: 8, border: "1px solid #E8E2D8" }}>
+          <pre style={{ fontSize: 12.5, color: "#3D3A38", lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: "Inter, sans-serif", margin: 0, backgroundColor: "#1E1A16", padding: "14px 16px", borderRadius: 8, border: "1px solid #2A241E" }}>
             {tmpl.body}
           </pre>
         </div>
@@ -256,19 +256,19 @@ export default function OnboardingPage() {
   return (
     <div style={{ maxWidth: 720, display: "flex", flexDirection: "column", gap: 24 }}>
       {/* Intro */}
-      <div style={{ backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 10, padding: "18px 22px" }}>
-        <p style={{ fontSize: 13.5, fontWeight: 600, color: "#1E1C1A", marginBottom: 4 }}>Client Sequences & Templates</p>
-        <p style={{ fontSize: 13, color: "#6B6560", lineHeight: 1.6 }}>
+      <div style={{ backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 10, padding: "18px 22px" }}>
+        <p style={{ fontSize: 13.5, fontWeight: 600, color: "#F2EDE8", marginBottom: 4 }}>Client Sequences & Templates</p>
+        <p style={{ fontSize: 13, color: "#C4B8AE", lineHeight: 1.6 }}>
           Playbooks for every client type. Open a sequence to see each step and what to do on each day.
           Email templates are ready to copy, personalize, and send.
         </p>
       </div>
 
       {/* Tab bar */}
-      <div style={{ display: "flex", backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 8, padding: 3, gap: 2, width: "fit-content" }}>
+      <div style={{ display: "flex", backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 8, padding: 3, gap: 2, width: "fit-content" }}>
         {(["sequences", "emails"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            style={{ padding: "6px 18px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 500, textTransform: "capitalize", transition: "all 0.15s", backgroundColor: tab === t ? "#1E1C1A" : "transparent", color: tab === t ? "#fff" : "#6B6560" }}>
+            style={{ padding: "6px 18px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 500, textTransform: "capitalize", transition: "all 0.15s", backgroundColor: tab === t ? "#F2EDE8" : "transparent", color: tab === t ? "#fff" : "#C4B8AE" }}>
             {t === "sequences" ? "Onboarding Sequences" : "Email Templates"}
           </button>
         ))}

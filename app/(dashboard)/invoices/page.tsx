@@ -16,11 +16,11 @@ interface Invoice {
 }
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-  draft:     { label: "Draft",     color: "#A09890", bg: "#F0EBE1" },
-  sent:      { label: "Sent",      color: "#1E5FAA", bg: "#EEF4FF" },
-  paid:      { label: "Paid",      color: "#1E7A3C", bg: "#ECFBF0" },
-  overdue:   { label: "Overdue",   color: "#B83232", bg: "#FEE8E8" },
-  cancelled: { label: "Cancelled", color: "#A09890", bg: "#F8F5F0" },
+  draft:     { label: "Draft",     color: "#8F827A", bg: "#1E1A16" },
+  sent:      { label: "Sent",      color: "#5B9BD5", bg: "#152232" },
+  paid:      { label: "Paid",      color: "#3FB86B", bg: "#12251A" },
+  overdue:   { label: "Overdue",   color: "#E2564A", bg: "#2C1614" },
+  cancelled: { label: "Cancelled", color: "#8F827A", bg: "#1E1A16" },
 };
 
 function uid() { return Math.random().toString(36).slice(2, 9); }
@@ -69,28 +69,28 @@ function NewInvoiceModal({ clients, onClose, onCreated }: { clients: Client[]; o
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(30,28,26,0.55)", backdropFilter: "blur(4px)" }}>
-      <div style={{ backgroundColor: "#fff", borderRadius: 14, boxShadow: "0 20px 60px rgba(0,0,0,0.14)", width: "100%", maxWidth: 540, margin: "0 16px", padding: 24, maxHeight: "92vh", overflowY: "auto" }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(6,5,4,0.72)", backdropFilter: "blur(4px)" }}>
+      <div style={{ backgroundColor: "#161310", borderRadius: 14, boxShadow: "0 20px 60px rgba(0,0,0,0.14)", width: "100%", maxWidth: 540, margin: "0 16px", padding: 24, maxHeight: "92vh", overflowY: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 className="font-display" style={{ fontSize: 18, color: "#1E1C1A" }}>New Invoice</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#A09890" }}><X size={16} /></button>
+          <h2 className="font-display" style={{ fontSize: 18, color: "#F2EDE8" }}>New Invoice</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#8F827A" }}><X size={16} /></button>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {/* Client + due */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>Client *</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#C4B8AE", marginBottom: 4 }}>Client *</label>
               <select value={clientId} onChange={(e) => setClientId(e.target.value)}
-                style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0" }}>
+                style={{ width: "100%", fontSize: 13, border: "1px solid #2A241E", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#1E1A16" }}>
                 <option value="">Select client…</option>
                 {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>Due Date</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#C4B8AE", marginBottom: 4 }}>Due Date</label>
               <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
-                style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0" }} />
+                style={{ width: "100%", fontSize: 13, border: "1px solid #2A241E", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#1E1A16" }} />
             </div>
           </div>
 
@@ -98,27 +98,27 @@ function NewInvoiceModal({ clients, onClose, onCreated }: { clients: Client[]; o
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 56px 80px 24px", gap: 6, marginBottom: 6 }}>
               {["Description", "Qty", "Rate", ""].map((h) => (
-                <p key={h} style={{ fontSize: 10.5, fontWeight: 500, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</p>
+                <p key={h} style={{ fontSize: 10.5, fontWeight: 500, color: "#8F827A", textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</p>
               ))}
             </div>
             {items.map((item) => (
               <div key={item.id} style={{ display: "grid", gridTemplateColumns: "1fr 56px 80px 24px", gap: 6, marginBottom: 5, alignItems: "center" }}>
                 <input value={item.description} onChange={(e) => updateItem(item.id, "description", e.target.value)} placeholder="Service description"
-                  style={{ fontSize: 12.5, border: "1px solid #E8E2D8", borderRadius: 6, padding: "6px 10px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A" }} />
+                  style={{ fontSize: 12.5, border: "1px solid #2A241E", borderRadius: 6, padding: "6px 10px", outline: "none", backgroundColor: "#1E1A16", color: "#F2EDE8" }} />
                 <input type="number" value={item.qty} onChange={(e) => updateItem(item.id, "qty", parseFloat(e.target.value) || 0)}
-                  style={{ fontSize: 12.5, border: "1px solid #E8E2D8", borderRadius: 6, padding: "6px 8px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A", textAlign: "center" }} />
+                  style={{ fontSize: 12.5, border: "1px solid #2A241E", borderRadius: 6, padding: "6px 8px", outline: "none", backgroundColor: "#1E1A16", color: "#F2EDE8", textAlign: "center" }} />
                 <input type="number" value={item.rate} onChange={(e) => updateItem(item.id, "rate", parseFloat(e.target.value) || 0)} placeholder="0.00"
-                  style={{ fontSize: 12.5, border: "1px solid #E8E2D8", borderRadius: 6, padding: "6px 8px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A", fontFamily: "JetBrains Mono, monospace" }} />
-                <button onClick={() => removeItem(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#C8C0B8", display: "flex", alignItems: "center", justifyContent: "center" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "#B83232")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "#C8C0B8")}>
+                  style={{ fontSize: 12.5, border: "1px solid #2A241E", borderRadius: 6, padding: "6px 8px", outline: "none", backgroundColor: "#1E1A16", color: "#F2EDE8", fontFamily: "JetBrains Mono, monospace" }} />
+                <button onClick={() => removeItem(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#8F827A", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#E2564A")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#8F827A")}>
                   <X size={13} />
                 </button>
               </div>
             ))}
-            <button onClick={addItem} style={{ fontSize: 12, color: "#A09890", background: "none", border: "none", cursor: "pointer", padding: "4px 0", marginTop: 2 }}
+            <button onClick={addItem} style={{ fontSize: 12, color: "#8F827A", background: "none", border: "none", cursor: "pointer", padding: "4px 0", marginTop: 2 }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#FF6B2B")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#A09890")}>
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#8F827A")}>
               + Add line item
             </button>
           </div>
@@ -127,26 +127,26 @@ function NewInvoiceModal({ clients, onClose, onCreated }: { clients: Client[]; o
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <div style={{ width: 200, display: "flex", flexDirection: "column", gap: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "#6B6560" }}>Subtotal</span>
-                <span style={{ fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: "#1E1C1A" }}>{fmt(subtotal)}</span>
+                <span style={{ fontSize: 12, color: "#C4B8AE" }}>Subtotal</span>
+                <span style={{ fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: "#F2EDE8" }}>{fmt(subtotal)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "#6B6560" }}>Tax %</span>
+                <span style={{ fontSize: 12, color: "#C4B8AE" }}>Tax %</span>
                 <input type="number" value={taxRate} onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                  style={{ width: 54, fontSize: 12, border: "1px solid #E8E2D8", borderRadius: 5, padding: "3px 6px", outline: "none", textAlign: "right", fontFamily: "JetBrains Mono, monospace" }} />
+                  style={{ width: 54, fontSize: 12, border: "1px solid #2A241E", borderRadius: 5, padding: "3px 6px", outline: "none", textAlign: "right", fontFamily: "JetBrains Mono, monospace" }} />
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 8, borderTop: "1px solid #E8E2D8" }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#1E1C1A" }}>Total</span>
-                <span style={{ fontSize: 14, fontWeight: 700, fontFamily: "JetBrains Mono, monospace", color: "#1E1C1A" }}>{fmt(total)}</span>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 8, borderTop: "1px solid #2A241E" }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#F2EDE8" }}>Total</span>
+                <span style={{ fontSize: 14, fontWeight: 700, fontFamily: "JetBrains Mono, monospace", color: "#F2EDE8" }}>{fmt(total)}</span>
               </div>
             </div>
           </div>
 
           {/* Notes */}
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>Notes (optional)</label>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#C4B8AE", marginBottom: 4 }}>Notes (optional)</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Payment terms, thank you note…"
-              style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", resize: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A", fontFamily: "Inter, sans-serif" }} />
+              style={{ width: "100%", fontSize: 13, border: "1px solid #2A241E", borderRadius: 8, padding: "8px 12px", outline: "none", resize: "none", backgroundColor: "#1E1A16", color: "#F2EDE8", fontFamily: "Inter, sans-serif" }} />
           </div>
         </div>
 
@@ -170,32 +170,32 @@ function InvoiceRow({ inv }: { inv: Invoice }) {
   return (
     <Link href={`/invoices/${inv.id}`}>
       <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-        style={{ display: "flex", alignItems: "center", gap: 16, padding: "13px 18px", backgroundColor: "#fff", border: `1px solid ${hov ? "#D9D1C3" : "#E8E2D8"}`, borderRadius: 10, cursor: "pointer", boxShadow: hov ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.15s" }}>
+        style={{ display: "flex", alignItems: "center", gap: 16, padding: "13px 18px", backgroundColor: "#161310", border: `1px solid ${hov ? "#3A322A" : "#2A241E"}`, borderRadius: 10, cursor: "pointer", boxShadow: hov ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.15s" }}>
 
         {/* Number */}
-        <span style={{ fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: "#A09890", flexShrink: 0, minWidth: 80 }}>
+        <span style={{ fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: "#8F827A", flexShrink: 0, minWidth: 80 }}>
           {inv.invoice_number}
         </span>
 
         {/* Client */}
-        <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: hov ? "#FF6B2B" : "#1E1C1A", transition: "color 0.15s", minWidth: 0 }}>
+        <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: hov ? "#FF6B2B" : "#F2EDE8", transition: "color 0.15s", minWidth: 0 }}>
           {inv.client?.name ?? "—"}
         </span>
 
         {/* Date */}
-        <span style={{ fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: "#A09890", flexShrink: 0 }}>
+        <span style={{ fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: "#8F827A", flexShrink: 0 }}>
           {new Date(inv.issue_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
         </span>
 
         {/* Due */}
         {inv.due_date && (
-          <span style={{ fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: overdue ? "#B83232" : "#A09890", flexShrink: 0 }}>
+          <span style={{ fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: overdue ? "#E2564A" : "#8F827A", flexShrink: 0 }}>
             {overdue ? "Overdue" : `Due ${new Date(inv.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
           </span>
         )}
 
         {/* Amount */}
-        <span style={{ fontSize: 13.5, fontWeight: 700, fontFamily: "JetBrains Mono, monospace", color: inv.status === "paid" ? "#1E7A3C" : "#1E1C1A", flexShrink: 0, minWidth: 80, textAlign: "right" }}>
+        <span style={{ fontSize: 13.5, fontWeight: 700, fontFamily: "JetBrains Mono, monospace", color: inv.status === "paid" ? "#3FB86B" : "#F2EDE8", flexShrink: 0, minWidth: 80, textAlign: "right" }}>
           {fmt(inv.total)}
         </span>
 
@@ -204,7 +204,7 @@ function InvoiceRow({ inv }: { inv: Invoice }) {
           {meta.label}
         </span>
 
-        <ChevronRight size={14} color={hov ? "#FF6B2B" : "#C8C0B8"} style={{ flexShrink: 0 }} />
+        <ChevronRight size={14} color={hov ? "#FF6B2B" : "#8F827A"} style={{ flexShrink: 0 }} />
       </div>
     </Link>
   );
@@ -245,7 +245,7 @@ export default function InvoicesPage() {
   const totalOverdue = withOverdue.filter((i) => i.status === "overdue").reduce((s, i) => s + i.total, 0);
 
   if (loading) return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", paddingTop: 80, color: "#A09890" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", paddingTop: 80, color: "#8F827A" }}>
       <Loader2 size={16} className="animate-spin" /><span style={{ fontSize: 13 }}>Loading…</span>
     </div>
   );
@@ -255,12 +255,12 @@ export default function InvoicesPage() {
       {/* Stats */}
       <div style={{ display: "flex", gap: 12 }}>
         {[
-          { label: "Outstanding", value: fmt(totalSent),    color: "#1E5FAA" },
-          { label: "Collected",   value: fmt(totalPaid),    color: "#1E7A3C" },
-          { label: "Overdue",     value: fmt(totalOverdue), color: totalOverdue > 0 ? "#B83232" : "#A09890" },
+          { label: "Outstanding", value: fmt(totalSent),    color: "#5B9BD5" },
+          { label: "Collected",   value: fmt(totalPaid),    color: "#3FB86B" },
+          { label: "Overdue",     value: fmt(totalOverdue), color: totalOverdue > 0 ? "#E2564A" : "#8F827A" },
         ].map(({ label, value, color }) => (
-          <div key={label} style={{ flex: 1, backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 10, padding: "14px 20px" }}>
-            <p style={{ fontSize: 10.5, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</p>
+          <div key={label} style={{ flex: 1, backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 10, padding: "14px 20px" }}>
+            <p style={{ fontSize: 10.5, color: "#8F827A", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</p>
             <p className="font-display" style={{ fontSize: 26, color }}>{value}</p>
           </div>
         ))}
@@ -268,10 +268,10 @@ export default function InvoicesPage() {
 
       {/* Controls */}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ display: "flex", backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 8, padding: 3, gap: 2 }}>
+        <div style={{ display: "flex", backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 8, padding: 3, gap: 2 }}>
           {(["all","sent","paid","overdue"] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-              style={{ padding: "5px 13px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, transition: "all 0.15s", textTransform: "capitalize", backgroundColor: filter === f ? "#1E1C1A" : "transparent", color: filter === f ? "#fff" : "#6B6560" }}>
+              style={{ padding: "5px 13px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, transition: "all 0.15s", textTransform: "capitalize", backgroundColor: filter === f ? "#F2EDE8" : "transparent", color: filter === f ? "#fff" : "#C4B8AE" }}>
               {f}
             </button>
           ))}
@@ -285,7 +285,7 @@ export default function InvoicesPage() {
       {/* List */}
       <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
         {filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 0", fontSize: 13, color: "#A09890" }}>No invoices yet.</div>
+          <div style={{ textAlign: "center", padding: "60px 0", fontSize: 13, color: "#8F827A" }}>No invoices yet.</div>
         ) : (
           filtered.map((inv) => <InvoiceRow key={inv.id} inv={inv} />)
         )}

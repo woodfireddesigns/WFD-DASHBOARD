@@ -4,23 +4,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CheckSquare, Kanban, FolderOpen,
-  Users, FileText, FileSignature, Zap, ClipboardList, Target, Radio,
+  Users, FileText, FileSignature, Zap, ClipboardList, Target,
 } from "lucide-react";
 
 const nav = [
   { label: "Home",      href: "/",           icon: Target },
   { label: "Tasks",     href: "/tasks",      icon: CheckSquare },
   { label: "Pipeline",  href: "/pipeline",   icon: Kanban },
-  { label: "Leads",     href: "/leads",      icon: Radio },
   { label: "Projects",  href: "/projects",   icon: FolderOpen },
   { label: "Clients",   href: "/clients",    icon: Users },
   { label: "Invoices",  href: "/invoices",   icon: FileText },
   { label: "Onboarding",href: "/onboarding", icon: FileSignature },
   { label: "Proposals", href: "/proposal",   icon: Zap },
-  { label: "UX Intake",     href: "/onboard",                              icon: ClipboardList },
-  { label: "Design Intake", href: "/design",                               icon: ClipboardList },
-  { label: "Basic Intake",  href: "/quick",                                icon: ClipboardList },
-  { label: "IL Discovery",  href: "/for/indigo-leather/questionnaire",     icon: ClipboardList },
+  // One tab, not four. The old entries pointed straight at public client-facing
+  // forms, which put them in the operator's navigation and still left you
+  // guessing which link to send. /intake is the hub; /start is the link.
+  { label: "Intake",    href: "/intake",     icon: ClipboardList },
 ];
 
 export default function Sidebar() {
@@ -38,7 +37,7 @@ export default function Sidebar() {
         <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 11, letterSpacing: "0.2em", color: "#FF6B2B", textTransform: "uppercase" }}>
           Wood Fired
         </p>
-        <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 9, letterSpacing: "0.14em", color: "#3D342C", textTransform: "uppercase" }}>
+        <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 9, letterSpacing: "0.14em", color: "#8F827A", textTransform: "uppercase" }}>
           Operations
         </p>
       </div>
@@ -60,7 +59,7 @@ export default function Sidebar() {
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "8px 10px", borderRadius: 7,
                 fontSize: 12.5, fontWeight: active ? 600 : 400,
-                color: active ? "#F2EDE8" : "#5A4E46",
+                color: active ? "#F2EDE8" : "#9A8E85",
                 backgroundColor: active ? "#1E1A16" : "transparent",
                 borderLeft: `2px solid ${active ? "#FF6B2B" : "transparent"}`,
                 textDecoration: "none",
@@ -69,13 +68,13 @@ export default function Sidebar() {
               onMouseEnter={(e) => {
                 if (!active) {
                   (e.currentTarget as HTMLElement).style.backgroundColor = "#141110";
-                  (e.currentTarget as HTMLElement).style.color = "#9A8E85";
+                  (e.currentTarget as HTMLElement).style.color = "#F2EDE8";
                 }
               }}
               onMouseLeave={(e) => {
                 if (!active) {
                   (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
-                  (e.currentTarget as HTMLElement).style.color = "#5A4E46";
+                  (e.currentTarget as HTMLElement).style.color = "#9A8E85";
                 }
               }}
             >
@@ -98,8 +97,8 @@ export default function Sidebar() {
             M
           </div>
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 12, color: "#9A8E85", fontWeight: 500 }}>Michael D.</p>
-            <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 9, color: "#2A241E", letterSpacing: "0.02em", textTransform: "uppercase" }}>
+            <p style={{ fontSize: 12, color: "#C4B8AE", fontWeight: 500 }}>Michael D.</p>
+            <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 9, color: "#8F827A", letterSpacing: "0.02em", textTransform: "uppercase" }}>
               wood fired designs
             </p>
           </div>

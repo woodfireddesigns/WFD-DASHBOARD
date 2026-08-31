@@ -1,446 +1,346 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { createPortal } from "react-dom";
-import { supabase, TradesLead, InboundLead, TradesStage, InboundStage } from "@/lib/supabase";
-import { MapPin, Mail, RefreshCw, Plus, X, ChevronDown, Loader2, Pencil } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/lib/supabase";
+import {
+  STAGES, OPEN_STAGES, FIRST_STAGE, stageOf, SOURCES, SOURCE_COLOR,
+  DEAL_COLUMNS, dealLabel, money, type Deal,
+} from "@/lib/pipeline";
+import {
+  T, card, input, label as labelStyle, primaryButton, ghostButton, pill,
+  modalOverlay, modalBox, wash,
+} from "@/lib/theme";
+import { Plus, X, Loader2, Pencil, Trash2, MapPin, Calendar } from "lucide-react";
 
-// ── Stage configs ─────────────────────────────────────────────────────────────
+/**
+ * One board, one table, five stages.
+ *
+ * What went: the Trades Outreach tab and everything that fed it -- grades,
+ * open and click counts, sequence steps, the second stage vocabulary. That was
+ * a cold-email campaign's dashboard living inside a studio's CRM, and the
+ * campaign is parked. The outreach API routes are untouched, so nothing is
+ * lost if it comes back; it just no longer decides what this screen looks like.
+ *
+ * What arrived: a value, a next step, and a date to do it by, which is what a
+ * pipeline is actually for.
+ */
 
-const TRADES_STAGES: { id: TradesStage; label: string; color: string }[] = [
-  { id: "scraped",         label: "Scraped",       color: "#A09890" },
-  { id: "outreach_active", label: "In Sequence",   color: "#1E5FAA" },
-  { id: "responded",       label: "Responded",     color: "#B86B10" },
-  { id: "call_booked",     label: "Call Booked",   color: "#FF6B2B" },
-  { id: "proposal_sent",   label: "Proposal Sent", color: "#1E1C1A" },
-  { id: "closed_won",      label: "Closed",        color: "#1E7A3C" },
-];
+// ── Card ─────────────────────────────────────────────────────────────────────
 
-const INBOUND_STAGES: { id: InboundStage; label: string; color: string }[] = [
-  { id: "new",           label: "New",           color: "#A09890" },
-  { id: "qualified",     label: "Qualified",     color: "#B86B10" },
-  { id: "proposal_sent", label: "Proposal Sent", color: "#1E1C1A" },
-  { id: "closed_won",    label: "Closed",        color: "#1E7A3C" },
-];
-
-const GRADE_BG: Record<string, { bg: string; color: string }> = {
-  A:        { bg: "#ECFBF0", color: "#1E7A3C" },
-  B:        { bg: "#FEF3E2", color: "#B86B10" },
-  C:        { bg: "#F0EBE1", color: "#6B6560" },
-  ungraded: { bg: "#F0EBE1", color: "#A09890" },
-};
-
-// ── Shared styles ─────────────────────────────────────────────────────────────
-
-const S = {
-  card: {
-    backgroundColor: "#fff",
-    border: "1px solid #E8E2D8",
-    borderRadius: 10,
-    padding: "12px 14px",
-  } as React.CSSProperties,
-  pill: (bg: string, color: string): React.CSSProperties => ({
-    display: "inline-block",
-    fontSize: 10,
-    fontWeight: 600,
-    padding: "2px 7px",
-    borderRadius: 99,
-    backgroundColor: bg,
-    color,
-  }),
-};
-
-// ── Shared fixed dropdown ─────────────────────────────────────────────────────
-
-function MoveDropdown({ btnRef, open, stages, onSelect }: {
-  btnRef: React.RefObject<HTMLButtonElement | null>;
-  open: boolean;
-  stages: { id: string; label: string; color: string }[];
-  onSelect: (id: string) => void;
+function DealCard({ deal, onEdit, onDragStart, dragging }: {
+  deal: Deal;
+  onEdit: () => void;
+  onDragStart: () => void;
+  dragging: boolean;
 }) {
-  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [hovered, setHovered] = useState(false);
+  const source = deal.source ?? "other";
+  const overdue =
+    deal.follow_up_at !== null &&
+    deal.follow_up_at <= new Date().toISOString().slice(0, 10);
 
-  useEffect(() => {
-    if (open && btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 4, left: r.left, width: r.width });
-    }
-  }, [open, btnRef]);
-
-  if (!open || !pos) return null;
-
-  return createPortal(
+  return (
     <div
+      draggable
+      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onDoubleClick={onEdit}
       style={{
-        position: "fixed", top: pos.top, left: pos.left, width: pos.width,
-        zIndex: 9999, backgroundColor: "#fff", border: "1px solid #E8E2D8",
-        borderRadius: 8, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", overflow: "hidden",
+        ...card,
+        cursor: "grab",
+        opacity: dragging ? 0.4 : 1,
+        borderColor: hovered ? T.borderHover : T.border,
+        transition: "border-color 0.15s, opacity 0.15s",
       }}
     >
-      {stages.map((s) => (
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: T.text, lineHeight: 1.35, minWidth: 0 }}>
+          {dealLabel(deal)}
+        </p>
         <button
-          key={s.id}
-          onClick={() => onSelect(s.id)}
+          onClick={onEdit}
+          title="Edit"
+          aria-label={`Edit ${dealLabel(deal)}`}
           style={{
-            width: "100%", textAlign: "left", padding: "8px 12px",
-            fontSize: 12, color: s.color, background: "none", border: "none",
-            cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
-            transition: "background-color 0.1s", fontFamily: "Inter, system-ui, sans-serif",
+            background: "none", border: "none", cursor: "pointer", padding: 2,
+            display: "flex", flexShrink: 0,
+            // Visible at rest, not conjured by hover. The old board hid every
+            // edit control at opacity 0 until you found it with the pointer.
+            color: hovered ? T.brand : T.muted,
+            transition: "color 0.15s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F8F5F0")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
         >
-          <span style={{ width: 6, height: 6, borderRadius: 99, backgroundColor: s.color, flexShrink: 0 }} />
-          {s.label}
+          <Pencil size={12} />
         </button>
-      ))}
-    </div>,
-    document.body
-  );
-}
-
-// ── Trades card ───────────────────────────────────────────────────────────────
-
-function TradesCard({ lead, stages, onMove, onDragStart, onEdited }: {
-  lead: TradesLead;
-  stages: typeof TRADES_STAGES;
-  onMove: (id: string, s: TradesStage) => void;
-  onDragStart: (id: string, type: "trades") => void;
-  onEdited: (updated: TradesLead) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const btnRef = useRef<HTMLButtonElement>(null);
-  const g = GRADE_BG[lead.grade] ?? GRADE_BG.ungraded;
-
-  useEffect(() => {
-    if (!open) return;
-    const close = () => setOpen(false);
-    setTimeout(() => document.addEventListener("click", close), 0);
-    return () => document.removeEventListener("click", close);
-  }, [open]);
-
-  return (
-    <div
-      draggable
-      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(lead.id, "trades"); }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ ...S.card, cursor: "grab" }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
-        <p style={{ fontSize: 12.5, fontWeight: 600, color: "#1E1C1A", lineHeight: 1.3 }}>{lead.business_name ?? "—"}</p>
-        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-          <button onClick={() => setEditing(true)} style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.15s", background: "none", border: "none", cursor: "pointer", color: "#A09890", padding: 2, display: "flex" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#FF6B2B")} onMouseLeave={(e) => (e.currentTarget.style.color = "#A09890")}>
-            <Pencil size={11} />
-          </button>
-          <span style={S.pill(g.bg, g.color)}>{lead.grade}</span>
-        </div>
       </div>
-      {(lead.city || lead.state) && (
-        <p style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#A09890", marginBottom: 8 }}>
-          <MapPin size={9} /> {[lead.city, lead.state].filter(Boolean).join(", ")}
+
+      {deal.name && deal.business_name && (
+        <p style={{ fontSize: 11.5, color: T.muted, marginTop: 3 }}>{deal.name}</p>
+      )}
+
+      {deal.value !== null && deal.value > 0 && (
+        <p style={{ fontFamily: T.mono, fontSize: 13, color: T.text2, marginTop: 6 }}>
+          {money(deal.value)}
         </p>
       )}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
-        {lead.total_emails_sent > 0 && (
-          <span style={{ fontSize: 10, fontFamily: "JetBrains Mono, monospace", color: "#A09890", display: "flex", alignItems: "center", gap: 3 }}>
-            <Mail size={8} /> {lead.total_emails_sent}
+
+      {(deal.city || deal.state) && (
+        <p style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: T.muted, marginTop: 5 }}>
+          <MapPin size={9} /> {[deal.city, deal.state].filter(Boolean).join(", ")}
+        </p>
+      )}
+
+      {deal.next_step && (
+        <p style={{ fontSize: 11.5, color: T.text2, marginTop: 8, lineHeight: 1.4 }}>
+          <span style={{ color: T.muted }}>Next: </span>{deal.next_step}
+        </p>
+      )}
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 9 }}>
+        {deal.follow_up_at && (
+          <span style={pill(overdue ? T.danger : T.muted)}>
+            <Calendar size={9} />
+            {new Date(`${deal.follow_up_at}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           </span>
         )}
-        {lead.open_count > 0 && <span style={S.pill("#EEF4FF", "#1E5FAA")}>{lead.open_count} opens</span>}
-        {lead.click_count > 0 && <span style={S.pill("#FFF3EE", "#FF6B2B")}>{lead.click_count} clicks</span>}
-        {lead.response_received && <span style={S.pill("#ECFBF0", "#1E7A3C")}>replied</span>}
+        {deal.source && (
+          <span style={pill(SOURCE_COLOR[source] ?? T.muted)}>{source.replace(/_/g, " ")}</span>
+        )}
+        {(deal.service_interest ?? []).slice(0, 2).map((s) => (
+          <span key={s} style={{ ...pill(T.muted), fontWeight: 500 }}>{s}</span>
+        ))}
       </div>
-      <button
-        ref={btnRef}
-        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-        style={{
-          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-          fontSize: 11, color: "#A09890", backgroundColor: "#F8F5F0",
-          border: "1px solid #E8E2D8", borderRadius: 6, padding: "5px 10px", cursor: "pointer",
-        }}
-      >
-        <span>Move to…</span><ChevronDown size={10} />
-      </button>
-      <MoveDropdown
-        btnRef={btnRef} open={open} stages={stages}
-        onSelect={(id) => { onMove(lead.id, id as TradesStage); setOpen(false); }}
-      />
-      {editing && <EditTradesModal lead={lead} onClose={() => setEditing(false)} onSaved={(u) => { onEdited(u); setEditing(false); }} />}
     </div>
   );
 }
 
-// ── Inbound card ──────────────────────────────────────────────────────────────
+// ── Add / edit ───────────────────────────────────────────────────────────────
 
-function InboundCard({ lead, stages, onMove, onDragStart, onEdited }: {
-  lead: InboundLead;
-  stages: typeof INBOUND_STAGES;
-  onMove: (id: string, s: InboundStage) => void;
-  onDragStart: (id: string, type: "inbound") => void;
-  onEdited: (updated: InboundLead) => void;
+type Draft = {
+  title: string; name: string; business_name: string; email: string; phone: string;
+  city: string; state: string; source: string; referred_by: string;
+  value: string; stage: string; next_step: string; follow_up_at: string; notes: string;
+};
+
+const emptyDraft = (): Draft => ({
+  title: "", name: "", business_name: "", email: "", phone: "",
+  city: "", state: "", source: "referral", referred_by: "",
+  value: "", stage: FIRST_STAGE, next_step: "", follow_up_at: "", notes: "",
+});
+
+const draftOf = (d: Deal): Draft => ({
+  title: d.title ?? "", name: d.name ?? "", business_name: d.business_name ?? "",
+  email: d.email ?? "", phone: d.phone ?? "", city: d.city ?? "", state: d.state ?? "",
+  source: d.source ?? "other", referred_by: d.referred_by ?? "",
+  value: d.value === null ? "" : String(d.value), stage: d.stage,
+  next_step: d.next_step ?? "", follow_up_at: d.follow_up_at ?? "", notes: d.notes ?? "",
+});
+
+function Field({ label, value, onChange, type = "text", placeholder }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string;
 }) {
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const btnRef = useRef<HTMLButtonElement>(null);
-  const sourceColors: Record<string, { bg: string; color: string }> = {
-    referral:  { bg: "#EEF4FF", color: "#1E5FAA" },
-    instagram: { bg: "#FFF0F7", color: "#9C2E6F" },
-    website:   { bg: "#F0EBE1", color: "#6B6560" },
-    contra:    { bg: "#F5F0E8", color: "#6B6560" },
-    cold_dm:   { bg: "#FFF3EE", color: "#FF6B2B" },
-    other:     { bg: "#F0EBE1", color: "#A09890" },
-  };
-  const sc = sourceColors[lead.source ?? "other"] ?? sourceColors.other;
-
-  useEffect(() => {
-    if (!open) return;
-    const close = () => setOpen(false);
-    setTimeout(() => document.addEventListener("click", close), 0);
-    return () => document.removeEventListener("click", close);
-  }, [open]);
-
   return (
-    <div
-      draggable
-      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(lead.id, "inbound"); }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ ...S.card, cursor: "grab" }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6, marginBottom: 4 }}>
-        <p style={{ fontSize: 12.5, fontWeight: 600, color: "#1E1C1A", lineHeight: 1.3 }}>
-          {lead.business_name || lead.name || "—"}
-        </p>
-        <button onClick={() => setEditing(true)} style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.15s", background: "none", border: "none", cursor: "pointer", color: "#A09890", padding: 2, display: "flex", flexShrink: 0 }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#FF6B2B")} onMouseLeave={(e) => (e.currentTarget.style.color = "#A09890")}>
-          <Pencil size={11} />
-        </button>
-      </div>
-      {lead.name && lead.business_name && (
-        <p style={{ fontSize: 11, color: "#A09890", marginBottom: 6 }}>{lead.name}</p>
+    <div>
+      <label style={labelStyle}>{label}</label>
+      {type === "textarea" ? (
+        <textarea
+          value={value} onChange={(e) => onChange(e.target.value)} rows={3} placeholder={placeholder}
+          style={{ ...input, resize: "vertical" }}
+        />
+      ) : (
+        <input
+          type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
+          style={input}
+        />
       )}
-      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 10 }}>
-        {lead.source && <span style={S.pill(sc.bg, sc.color)}>{lead.source.replace("_", " ")}</span>}
-        {lead.referred_by && <span style={{ fontSize: 11, color: "#A09890" }}>via {lead.referred_by}</span>}
-        {lead.budget_estimate && <span style={S.pill("#ECFBF0", "#1E7A3C")}>{lead.budget_estimate}</span>}
-      </div>
-      <button
-        ref={btnRef}
-        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-        style={{
-          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-          fontSize: 11, color: "#A09890", backgroundColor: "#F8F5F0",
-          border: "1px solid #E8E2D8", borderRadius: 6, padding: "5px 10px", cursor: "pointer",
-        }}
-      >
-        <span>Move to…</span><ChevronDown size={10} />
-      </button>
-      <MoveDropdown
-        btnRef={btnRef} open={open} stages={stages}
-        onSelect={(id) => { onMove(lead.id, id as InboundStage); setOpen(false); }}
-      />
-      {editing && <EditInboundModal lead={lead} onClose={() => setEditing(false)} onSaved={(u) => { onEdited(u); setEditing(false); }} />}
     </div>
   );
 }
 
-// ── Add inbound modal ─────────────────────────────────────────────────────────
-
-function AddInboundModal({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
-  const [form, setForm] = useState({ name: "", business_name: "", email: "", phone: "", source: "referral", referred_by: "", budget_estimate: "", notes: "" });
-  const [saving, setSaving] = useState(false);
-
-  async function submit() {
-    if (!form.name && !form.business_name) return;
-    setSaving(true);
-    await supabase.from("inbound_leads").insert({ ...form, referred_by: form.referred_by || null, budget_estimate: form.budget_estimate || null, notes: form.notes || null, pipeline_stage: "new" });
-    setSaving(false); onAdded(); onClose();
-  }
-
-  const inp = (label: string, key: keyof typeof form, placeholder?: string) => (
-    <div>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>{label}</label>
-      <input value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} placeholder={placeholder}
-        style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A", fontFamily: "Inter, sans-serif" }} />
-    </div>
-  );
-
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(30,28,26,0.55)", backdropFilter: "blur(4px)" }}>
-      <div style={{ backgroundColor: "#fff", borderRadius: 14, boxShadow: "0 20px 60px rgba(0,0,0,0.15)", width: "100%", maxWidth: 420, margin: "0 16px", padding: 24, maxHeight: "90vh", overflowY: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 className="font-display" style={{ fontSize: 18, color: "#1E1C1A" }}>Add Inbound Lead</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#A09890" }}><X size={16} /></button>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {inp("Contact Name", "name", "Jason R.")}
-          {inp("Business Name", "business_name", "Ridge Roofing Co.")}
-          {inp("Email", "email")}
-          {inp("Phone", "phone")}
-          <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>Source</label>
-            <select value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}
-              style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A" }}>
-              {["referral","instagram","website","contra","cold_dm","other"].map((s) => (
-                <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1).replace("_"," ")}</option>
-              ))}
-            </select>
-          </div>
-          {inp("Referred By", "referred_by", "Laura M.")}
-          {inp("Budget Estimate", "budget_estimate", "$2,400")}
-          {inp("Notes", "notes")}
-        </div>
-        <button onClick={submit} disabled={saving}
-          style={{ marginTop: 20, width: "100%", backgroundColor: "#FF6B2B", color: "#fff", border: "none", borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: saving ? 0.6 : 1 }}>
-          {saving ? "Saving…" : "Add Lead"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Edit modals ───────────────────────────────────────────────────────────────
-
-const modalOverlay: React.CSSProperties = { position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(30,28,26,0.55)", backdropFilter: "blur(4px)" };
-const modalBox: React.CSSProperties = { backgroundColor: "#fff", borderRadius: 14, boxShadow: "0 20px 60px rgba(0,0,0,0.15)", width: "100%", maxWidth: 440, margin: "0 16px", padding: 24, maxHeight: "90vh", overflowY: "auto" };
-
-function FieldRow({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
-  return (
-    <div>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>{label}</label>
-      {type === "textarea"
-        ? <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={3}
-            style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A", fontFamily: "Inter, sans-serif", resize: "vertical" }} />
-        : <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
-            style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A", fontFamily: "Inter, sans-serif" }} />
-      }
-    </div>
-  );
-}
-
-function EditTradesModal({ lead, onClose, onSaved }: { lead: TradesLead; onClose: () => void; onSaved: (updated: TradesLead) => void }) {
-  const [form, setForm] = useState({ business_name: lead.business_name ?? "", city: lead.city ?? "", state: lead.state ?? "", grade: lead.grade, email: lead.email ?? "", phone: lead.phone ?? "", notes: lead.notes ?? "" });
-  const [saving, setSaving] = useState(false);
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
-
-  async function save() {
-    setSaving(true);
-    const patch = { business_name: form.business_name || null, city: form.city || null, state: form.state || null, grade: form.grade as TradesLead["grade"], email: form.email || null, phone: form.phone || null, notes: form.notes || null };
-    await supabase.from("roofing_leads").update(patch).eq("id", lead.id);
-    onSaved({ ...lead, ...patch });
-    setSaving(false); onClose();
-  }
-
-  return (
-    <div style={modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={modalBox}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 className="font-display" style={{ fontSize: 18, color: "#1E1C1A" }}>Edit Lead</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#A09890" }}><X size={16} /></button>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <FieldRow label="Business Name" value={form.business_name} onChange={set("business_name")} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <FieldRow label="City" value={form.city} onChange={set("city")} />
-            <FieldRow label="State" value={form.state} onChange={set("state")} />
-          </div>
-          <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>Grade</label>
-            <select value={form.grade} onChange={(e) => setForm((f) => ({ ...f, grade: e.target.value as TradesLead["grade"] }))}
-              style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A" }}>
-              {["A","B","C","ungraded"].map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </div>
-          <FieldRow label="Email" value={form.email} onChange={set("email")} type="email" />
-          <FieldRow label="Phone" value={form.phone} onChange={set("phone")} />
-          <FieldRow label="Notes" value={form.notes} onChange={set("notes")} type="textarea" />
-        </div>
-        <button onClick={save} disabled={saving}
-          style={{ marginTop: 20, width: "100%", backgroundColor: "#FF6B2B", color: "#fff", border: "none", borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: saving ? 0.6 : 1 }}>
-          {saving ? "Saving…" : "Save Changes"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function EditInboundModal({ lead, onClose, onSaved }: { lead: InboundLead; onClose: () => void; onSaved: (updated: InboundLead) => void }) {
-  const [form, setForm] = useState({ name: lead.name ?? "", business_name: lead.business_name ?? "", email: lead.email ?? "", phone: lead.phone ?? "", source: lead.source ?? "other", referred_by: lead.referred_by ?? "", budget_estimate: lead.budget_estimate ?? "", city: lead.city ?? "", state: lead.state ?? "", notes: lead.notes ?? "" });
-  const [saving, setSaving] = useState(false);
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
-
-  async function save() {
-    setSaving(true);
-    const patch = { name: form.name || null, business_name: form.business_name || null, email: form.email || null, phone: form.phone || null, source: form.source || null, referred_by: form.referred_by || null, budget_estimate: form.budget_estimate || null, city: form.city || null, state: form.state || null, notes: form.notes || null };
-    await supabase.from("inbound_leads").update(patch).eq("id", lead.id);
-    onSaved({ ...lead, ...patch });
-    setSaving(false); onClose();
-  }
-
-  return (
-    <div style={modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={modalBox}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 className="font-display" style={{ fontSize: 18, color: "#1E1C1A" }}>Edit Lead</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#A09890" }}><X size={16} /></button>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <FieldRow label="Contact Name" value={form.name} onChange={set("name")} />
-          <FieldRow label="Business Name" value={form.business_name} onChange={set("business_name")} />
-          <FieldRow label="Email" value={form.email} onChange={set("email")} type="email" />
-          <FieldRow label="Phone" value={form.phone} onChange={set("phone")} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <FieldRow label="City" value={form.city} onChange={set("city")} />
-            <FieldRow label="State" value={form.state} onChange={set("state")} />
-          </div>
-          <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 }}>Source</label>
-            <select value={form.source} onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
-              style={{ width: "100%", fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8, padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0", color: "#1E1C1A" }}>
-              {["referral","instagram","website","contra","cold_dm","other"].map(s => <option key={s} value={s}>{s.replace("_"," ")}</option>)}
-            </select>
-          </div>
-          <FieldRow label="Referred By" value={form.referred_by} onChange={set("referred_by")} />
-          <FieldRow label="Budget Estimate" value={form.budget_estimate} onChange={set("budget_estimate")} />
-          <FieldRow label="Notes" value={form.notes} onChange={set("notes")} type="textarea" />
-        </div>
-        <button onClick={save} disabled={saving}
-          style={{ marginTop: 20, width: "100%", backgroundColor: "#FF6B2B", color: "#fff", border: "none", borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: saving ? 0.6 : 1 }}>
-          {saving ? "Saving…" : "Save Changes"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Kanban column ─────────────────────────────────────────────────────────────
-
-function Column({ label, color, count, children, onDrop, onDragOver, isDragOver }: {
-  label: string; color: string; count: number; children: React.ReactNode;
-  onDrop: () => void; onDragOver: () => void; isDragOver: boolean;
+function DealModal({ deal, onClose, onSaved, onDeleted }: {
+  /** null means "new deal". */
+  deal: Deal | null;
+  onClose: () => void;
+  onSaved: (deal: Deal) => void;
+  onDeleted: (id: string) => void;
 }) {
+  const [form, setForm] = useState<Draft>(deal ? draftOf(deal) : emptyDraft());
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const set = (k: keyof Draft) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  async function save() {
+    if (!form.title.trim() && !form.business_name.trim() && !form.name.trim()) {
+      setError("Give it a name — the deal, the company, or the person.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+
+    const patch = {
+      title: form.title.trim() || null,
+      name: form.name.trim() || null,
+      business_name: form.business_name.trim() || null,
+      email: form.email.trim() || null,
+      phone: form.phone.trim() || null,
+      city: form.city.trim() || null,
+      state: form.state.trim() || null,
+      source: form.source || null,
+      referred_by: form.referred_by.trim() || null,
+      value: form.value.trim() === "" ? null : Number(form.value.replace(/[^0-9.]/g, "")),
+      stage: form.stage,
+      next_step: form.next_step.trim() || null,
+      follow_up_at: form.follow_up_at || null,
+      notes: form.notes.trim() || null,
+    };
+
+    const query = deal === null
+      ? supabase.from("deals").insert(patch).select(DEAL_COLUMNS).single()
+      : supabase.from("deals").update(patch).eq("id", deal.id).select(DEAL_COLUMNS).single();
+
+    const { data, error: err } = await query;
+    setSaving(false);
+
+    // Surfaced, not swallowed. A failed write used to close the modal and look
+    // exactly like a successful one until the next page load.
+    if (err !== null || data === null) {
+      setError(err?.message ?? "Could not save.");
+      return;
+    }
+    onSaved(data as unknown as Deal);
+    onClose();
+  }
+
+  async function remove() {
+    if (deal === null) return;
+    if (!confirm(`Delete "${dealLabel(deal)}"? This cannot be undone.`)) return;
+    setSaving(true);
+    const { error: err } = await supabase.from("deals").delete().eq("id", deal.id);
+    setSaving(false);
+    if (err !== null) { setError(err.message); return; }
+    onDeleted(deal.id);
+    onClose();
+  }
+
+  return (
+    <div style={modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={modalBox}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h2 className="font-display" style={{ fontSize: 18, color: T.text }}>
+            {deal === null ? "New Deal" : "Edit Deal"}
+          </h2>
+          <button onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", cursor: "pointer", color: T.muted }}>
+            <X size={16} />
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <Field label="Deal" value={form.title} onChange={set("title")} placeholder="Website + brand refresh" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Field label="Company" value={form.business_name} onChange={set("business_name")} />
+            <Field label="Contact" value={form.name} onChange={set("name")} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Field label="Email" value={form.email} onChange={set("email")} type="email" />
+            <Field label="Phone" value={form.phone} onChange={set("phone")} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Field label="Value ($)" value={form.value} onChange={set("value")} placeholder="4800" />
+            <div>
+              <label style={labelStyle}>Stage</label>
+              <select value={form.stage} onChange={(e) => set("stage")(e.target.value)} style={input}>
+                {STAGES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Field label="Next step" value={form.next_step} onChange={set("next_step")} placeholder="Send the quote" />
+            <Field label="By" value={form.follow_up_at} onChange={set("follow_up_at")} type="date" />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label style={labelStyle}>Source</label>
+              <select value={form.source} onChange={(e) => set("source")(e.target.value)} style={input}>
+                {SOURCES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+              </select>
+            </div>
+            <Field label="Referred by" value={form.referred_by} onChange={set("referred_by")} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Field label="City" value={form.city} onChange={set("city")} />
+            <Field label="State" value={form.state} onChange={set("state")} />
+          </div>
+          <Field label="Notes" value={form.notes} onChange={set("notes")} type="textarea" />
+        </div>
+
+        {error !== null && (
+          <p style={{ marginTop: 14, fontSize: 12.5, color: T.danger }}>{error}</p>
+        )}
+
+        <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
+          <button onClick={save} disabled={saving} style={{ ...primaryButton, flex: 1, opacity: saving ? 0.6 : 1 }}>
+            {saving ? "Saving…" : deal === null ? "Add Deal" : "Save Changes"}
+          </button>
+          {deal !== null && (
+            <button
+              onClick={remove}
+              disabled={saving}
+              style={{
+                ...ghostButton,
+                color: T.danger,
+                borderColor: wash(T.danger, 0.35),
+                display: "flex", alignItems: "center", gap: 6,
+              }}
+            >
+              <Trash2 size={13} /> Delete
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Column ───────────────────────────────────────────────────────────────────
+
+function Column({ stage, deals, onDrop, dragOver, onDragOver, children }: {
+  stage: { id: string; label: string; color: string };
+  deals: Deal[];
+  onDrop: () => void;
+  dragOver: boolean;
+  onDragOver: () => void;
+  children: React.ReactNode;
+}) {
+  const total = deals.reduce((sum, d) => sum + (d.value ?? 0), 0);
+
   return (
     <div
-      style={{ minWidth: 210, maxWidth: 210, display: "flex", flexDirection: "column" }}
+      style={{ minWidth: 236, maxWidth: 236, display: "flex", flexDirection: "column" }}
       onDragOver={(e) => { e.preventDefault(); onDragOver(); }}
       onDrop={(e) => { e.preventDefault(); onDrop(); }}
-      onDragLeave={() => {}}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10, padding: "0 2px" }}>
-        <span style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: color, flexShrink: 0 }} />
-        <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color, flex: 1 }}>{label}</span>
-        <span style={{ fontSize: 10.5, fontFamily: "JetBrains Mono, monospace", color: "#A09890", backgroundColor: "#E8E2D8", padding: "1px 7px", borderRadius: 99 }}>{count}</span>
+        <span style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: stage.color, flexShrink: 0 }} />
+        <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: stage.color, flex: 1 }}>
+          {stage.label}
+        </span>
+        <span style={{ fontSize: 10.5, fontFamily: T.mono, color: T.text2, backgroundColor: T.raised, padding: "1px 7px", borderRadius: 99 }}>
+          {deals.length}
+        </span>
       </div>
+
+      {total > 0 && (
+        <p style={{ fontFamily: T.mono, fontSize: 10.5, color: T.muted, marginBottom: 8, padding: "0 2px" }}>
+          {money(total)}
+        </p>
+      )}
+
       <div style={{
-        display: "flex", flexDirection: "column", gap: 6, flex: 1,
-        minHeight: 60, borderRadius: 10, padding: isDragOver ? 4 : 0,
-        border: isDragOver ? `2px dashed ${color}` : "2px solid transparent",
-        backgroundColor: isDragOver ? `${color}10` : "transparent",
+        display: "flex", flexDirection: "column", gap: 6, flex: 1, minHeight: 70,
+        borderRadius: 10, padding: 4,
+        border: `2px dashed ${dragOver ? stage.color : "transparent"}`,
+        backgroundColor: dragOver ? wash(stage.color, 0.08) : "transparent",
         transition: "all 0.15s",
       }}>
         {children}
@@ -449,153 +349,166 @@ function Column({ label, color, count, children, onDrop, onDragOver, isDragOver 
   );
 }
 
-// ── Stat chip ─────────────────────────────────────────────────────────────────
-
-function Stat({ label, value, color }: { label: string; value: number; color?: string }) {
+function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <div style={{ backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 10, padding: "14px 20px", flex: 1 }}>
-      <p style={{ fontSize: 10.5, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</p>
-      <p className="font-display" style={{ fontSize: 28, color: color ?? "#1E1C1A" }}>{value}</p>
+    <div style={{ ...card, padding: "14px 20px", flex: 1 }}>
+      <p style={{ fontSize: 10.5, color: T.muted, textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 6 }}>
+        {label}
+      </p>
+      <p className="font-display" style={{ fontSize: 27, color: color ?? T.text, lineHeight: 1 }}>{value}</p>
     </div>
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PipelinePage() {
-  const [tab, setTab] = useState<"trades" | "inbound">("trades");
-  const [tradesLeads, setTradesLeads] = useState<TradesLead[]>([]);
-  const [inboundLeads, setInboundLeads] = useState<InboundLead[]>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
-  const dragRef = useRef<{ id: string; type: "trades" | "inbound" } | null>(null);
+  const [editing, setEditing] = useState<Deal | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [showClosed, setShowClosed] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadTrades = useCallback(async () => {
-    const { data } = await supabase.from("roofing_leads")
-      .select("id,business_name,city,state,grade,score,pipeline_stage,sequence_status,sequence_step,outreach_sent,response_received,total_emails_sent,open_count,click_count,email,phone,website_url,notes,last_outreach_at,next_outreach_at,slug")
-      .not("pipeline_stage", "eq", "closed_lost").order("score", { ascending: false });
-    setTradesLeads((data as TradesLead[]) ?? []);
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("deals")
+      .select(DEAL_COLUMNS)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
+    setLoadError(error?.message ?? null);
+    setDeals((data as unknown as Deal[]) ?? []);
+    setLoading(false);
   }, []);
 
-  const loadInbound = useCallback(async () => {
-    const { data } = await supabase.from("inbound_leads").select("*").not("pipeline_stage", "eq", "closed_lost").order("created_at", { ascending: false });
-    setInboundLeads((data as InboundLead[]) ?? []);
-  }, []);
+  useEffect(() => { load(); }, [load]);
 
-  async function load() { setLoading(true); await Promise.all([loadTrades(), loadInbound()]); setLoading(false); }
-  useEffect(() => { load(); }, []);
-
-  async function moveTradesLead(id: string, stage: TradesStage) {
-    setTradesLeads((p) => p.map((l) => l.id === id ? { ...l, pipeline_stage: stage } : l));
-    await supabase.from("roofing_leads").update({ pipeline_stage: stage }).eq("id", id);
+  async function moveTo(id: string, stage: string) {
+    const before = deals;
+    setDeals((prev) => prev.map((d) => (d.id === id ? { ...d, stage } : d)));
+    const isTerminal = stageOf(stage).terminal === true;
+    const { error } = await supabase
+      .from("deals")
+      .update({ stage, closed_at: isTerminal ? new Date().toISOString() : null })
+      .eq("id", id);
+    if (error !== null) setDeals(before);
   }
 
-  async function moveInboundLead(id: string, stage: InboundStage) {
-    setInboundLeads((p) => p.map((l) => l.id === id ? { ...l, pipeline_stage: stage } : l));
-    await supabase.from("inbound_leads").update({ pipeline_stage: stage }).eq("id", id);
-  }
+  const byStage = (id: string) => deals.filter((d) => d.stage === id);
 
-  const tradesByStage  = (s: TradesStage)  => tradesLeads.filter((l) => l.pipeline_stage === s);
-  const inboundByStage = (s: InboundStage) => inboundLeads.filter((l) => l.pipeline_stage === s);
+  const open = deals.filter((d) => stageOf(d.stage).terminal !== true);
+  const openValue = open.reduce((sum, d) => sum + (d.value ?? 0), 0);
+  const wonValue = deals
+    .filter((d) => stageOf(d.stage).winning === true)
+    .reduce((sum, d) => sum + (d.value ?? 0), 0);
+  const dueToday = open.filter(
+    (d) => d.follow_up_at !== null && d.follow_up_at <= new Date().toISOString().slice(0, 10)
+  ).length;
 
-  const activeCount    = tradesLeads.filter((l) => l.pipeline_stage === "outreach_active").length;
-  const respondedCount = tradesLeads.filter((l) => l.pipeline_stage === "responded").length;
-  const hotCount       = tradesLeads.filter((l) => ["call_booked","proposal_sent"].includes(l.pipeline_stage)).length;
+  const columns = showClosed ? STAGES : OPEN_STAGES;
+  const closedCount = deals.length - open.length;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24, minHeight: 0 }}>
-      {/* Stats */}
-      <div style={{ display: "flex", gap: 12 }}>
-        <Stat label="In Sequence" value={activeCount}    color="#1E5FAA" />
-        <Stat label="Responded"   value={respondedCount} color="#B86B10" />
-        <Stat label="Hot"         value={hotCount}       color="#FF6B2B" />
+    <div style={{ display: "flex", flexDirection: "column", gap: 22, minHeight: 0 }}>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <Stat label="Open Deals" value={String(open.length)} />
+        <Stat label="Open Value" value={money(openValue) || "$0"} color={T.brand} />
+        <Stat label="Won" value={money(wonValue) || "$0"} color={T.success} />
+        <Stat label="Due" value={String(dueToday)} color={dueToday > 0 ? T.danger : undefined} />
       </div>
 
-      {/* Tab + actions */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 8, padding: 3, gap: 2 }}>
-          {(["trades", "inbound"] as const).map((t) => (
-            <button key={t} onClick={() => setTab(t)}
-              style={{
-                padding: "6px 16px", borderRadius: 6, border: "none", cursor: "pointer",
-                fontSize: 12.5, fontWeight: 500, transition: "all 0.15s",
-                backgroundColor: tab === t ? "#FF6B2B" : "transparent",
-                color: tab === t ? "#fff" : "#6B6560",
-              }}>
-              {t === "trades" ? "Trades Outreach" : "Inbound / WOM"}
-            </button>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={load}
-            style={{ padding: "7px 10px", border: "1px solid #E8E2D8", borderRadius: 8, backgroundColor: "#fff", cursor: "pointer", color: "#6B6560", display: "flex", alignItems: "center" }}>
-            <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
-          </button>
-          {tab === "inbound" && (
-            <button onClick={() => setShowAdd(true)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", backgroundColor: "#FF6B2B", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 12.5, fontWeight: 600 }}>
-              <Plus size={13} /> Add Lead
-            </button>
-          )}
-        </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <button
+          onClick={() => setShowClosed((v) => !v)}
+          style={{ ...ghostButton, padding: "7px 14px", color: showClosed ? T.text : T.text2 }}
+        >
+          {showClosed ? "Hide closed" : `Show closed${closedCount > 0 ? ` (${closedCount})` : ""}`}
+        </button>
+        <button
+          onClick={() => setAdding(true)}
+          style={{ ...primaryButton, display: "flex", alignItems: "center", gap: 6, padding: "8px 16px" }}
+        >
+          <Plus size={13} /> New Deal
+        </button>
       </div>
 
-      {/* Board */}
       {loading ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", padding: "60px 0", color: "#A09890" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", padding: "60px 0", color: T.muted }}>
           <Loader2 size={16} className="animate-spin" /><span style={{ fontSize: 13 }}>Loading…</span>
         </div>
+      ) : loadError !== null ? (
+        <div style={{ ...card, textAlign: "center", padding: "28px 20px" }}>
+          <p style={{ fontSize: 13, color: T.danger }}>Could not load the pipeline.</p>
+          <p style={{ fontSize: 12, color: T.muted, marginTop: 6 }}>{loadError}</p>
+        </div>
+      ) : deals.length === 0 ? (
+        <div style={{ ...card, textAlign: "center", padding: "40px 20px" }}>
+          <p style={{ fontSize: 13.5, color: T.text2 }}>Nothing in the pipeline yet.</p>
+          <p style={{ fontSize: 12.5, color: T.muted, marginTop: 6, lineHeight: 1.5 }}>
+            Add a deal when a conversation starts. Every public intake form drops what it
+            captures straight into <span style={{ color: T.text2 }}>{stageOf(FIRST_STAGE).label}</span>.
+          </p>
+        </div>
       ) : (
-        <div style={{ overflowX: "auto", paddingBottom: 16 }} onDragEnd={() => { dragRef.current = null; setDragOver(null); }}>
-          <div style={{ display: "flex", gap: 14, minWidth: "max-content" }}>
-            {tab === "trades"
-              ? TRADES_STAGES.map((stage) => (
-                  <Column
-                    key={stage.id} label={stage.label} color={stage.color} count={tradesByStage(stage.id).length}
-                    isDragOver={dragOver === stage.id}
-                    onDragOver={() => setDragOver(stage.id)}
-                    onDrop={() => {
-                      if (dragRef.current?.type === "trades") moveTradesLead(dragRef.current.id, stage.id as TradesStage);
-                      setDragOver(null);
-                    }}
-                  >
-                    {tradesByStage(stage.id).length === 0
-                      ? <div style={{ border: "1px dashed #E8E2D8", borderRadius: 8, padding: "14px", fontSize: 11.5, color: "#C8C0B8", textAlign: "center" }}>Empty</div>
-                      : tradesByStage(stage.id).map((l) => (
-                          <TradesCard key={l.id} lead={l} stages={TRADES_STAGES} onMove={moveTradesLead}
-                            onDragStart={(id, type) => { dragRef.current = { id, type }; }}
-                            onEdited={(u) => setTradesLeads((p) => p.map((x) => x.id === u.id ? u : x))} />
-                        ))
-                    }
-                  </Column>
-                ))
-              : INBOUND_STAGES.map((stage) => (
-                  <Column
-                    key={stage.id} label={stage.label} color={stage.color} count={inboundByStage(stage.id).length}
-                    isDragOver={dragOver === stage.id}
-                    onDragOver={() => setDragOver(stage.id)}
-                    onDrop={() => {
-                      if (dragRef.current?.type === "inbound") moveInboundLead(dragRef.current.id, stage.id as InboundStage);
-                      setDragOver(null);
-                    }}
-                  >
-                    {inboundByStage(stage.id).length === 0
-                      ? <div style={{ border: "1px dashed #E8E2D8", borderRadius: 8, padding: "14px", fontSize: 11.5, color: "#C8C0B8", textAlign: "center" }}>Empty</div>
-                      : inboundByStage(stage.id).map((l) => (
-                          <InboundCard key={l.id} lead={l} stages={INBOUND_STAGES} onMove={moveInboundLead}
-                            onDragStart={(id, type) => { dragRef.current = { id, type }; }}
-                            onEdited={(u) => setInboundLeads((p) => p.map((x) => x.id === u.id ? u : x))} />
-                        ))
-                    }
-                  </Column>
-                ))
-            }
+        <div
+          style={{ overflowX: "auto", paddingBottom: 16 }}
+          onDragEnd={() => { setDragId(null); setDragOver(null); }}
+        >
+          <div style={{ display: "flex", gap: 12, minWidth: "max-content" }}>
+            {columns.map((stage) => (
+              <Column
+                key={stage.id}
+                stage={stage}
+                deals={byStage(stage.id)}
+                dragOver={dragOver === stage.id}
+                onDragOver={() => setDragOver(stage.id)}
+                onDrop={() => {
+                  if (dragId !== null) moveTo(dragId, stage.id);
+                  setDragId(null);
+                  setDragOver(null);
+                }}
+              >
+                {byStage(stage.id).length === 0 ? (
+                  <div style={{
+                    border: `1px dashed ${T.border}`, borderRadius: 8, padding: 14,
+                    fontSize: 11.5, color: T.faint, textAlign: "center",
+                  }}>
+                    Empty
+                  </div>
+                ) : (
+                  byStage(stage.id).map((deal) => (
+                    <DealCard
+                      key={deal.id}
+                      deal={deal}
+                      dragging={dragId === deal.id}
+                      onDragStart={() => setDragId(deal.id)}
+                      onEdit={() => setEditing(deal)}
+                    />
+                  ))
+                )}
+              </Column>
+            ))}
           </div>
         </div>
       )}
 
-      {showAdd && <AddInboundModal onClose={() => setShowAdd(false)} onAdded={loadInbound} />}
+      {(adding || editing !== null) && (
+        <DealModal
+          deal={editing}
+          onClose={() => { setAdding(false); setEditing(null); }}
+          onSaved={(saved) =>
+            setDeals((prev) =>
+              prev.some((d) => d.id === saved.id)
+                ? prev.map((d) => (d.id === saved.id ? saved : d))
+                : [saved, ...prev]
+            )
+          }
+          onDeleted={(id) => setDeals((prev) => prev.filter((d) => d.id !== id))}
+        />
+      )}
     </div>
   );
 }

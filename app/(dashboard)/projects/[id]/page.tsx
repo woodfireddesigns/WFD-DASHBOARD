@@ -2,18 +2,18 @@
 
 import { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { supabase, Project, ProjectStatus, ProjectType, Deliverable } from "@/lib/supabase";
+import { supabase, Project, ProjectStatus, ProjectType, BillingType, BlockedOn, Deliverable } from "@/lib/supabase";
 import { ArrowLeft, Plus, Check, Trash2, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 const STATUS_META: Record<ProjectStatus, { label: string; bg: string; color: string }> = {
-  discovery: { label: "Discovery", bg: "bg-blue-50",        color: "text-[#2B6CB0]" },
-  design:    { label: "Design",    bg: "bg-orange-50",      color: "text-[#C97B20]" },
-  build:     { label: "Build",     bg: "bg-orange-100",     color: "text-[#FF6B2B]" },
-  review:    { label: "Review",    bg: "bg-[#EAE4D8]",      color: "text-[#6B5F50]" },
-  delivered: { label: "Delivered", bg: "bg-green-50",       color: "text-[#2D7D46]" },
-  paused:    { label: "Paused",    bg: "bg-[#F5F0E8]",      color: "text-[#B8AE9A]" },
-  cancelled: { label: "Cancelled", bg: "bg-red-50",         color: "text-[#C0392B]" },
+  discovery: { label: "Discovery", bg: "bg-[#16222E]",        color: "text-[#5B9BD5]" },
+  design:    { label: "Design",    bg: "bg-[#2A1D12]",      color: "text-[#E8A33D]" },
+  build:     { label: "Build",     bg: "bg-[#33200F]",     color: "text-[#FF6B2B]" },
+  review:    { label: "Review",    bg: "bg-[#1E1A16]",      color: "text-[#C4B8AE]" },
+  delivered: { label: "Delivered", bg: "bg-[#12241A]",       color: "text-[#3FB86B]" },
+  paused:    { label: "Paused",    bg: "bg-[#1E1A16]",      color: "text-[#8F827A]" },
+  cancelled: { label: "Cancelled", bg: "bg-[#2A1614]",         color: "text-[#E2564A]" },
 };
 
 const TYPE_LABELS: Record<ProjectType, string> = {
@@ -33,9 +33,9 @@ interface ClientOption { id: string; name: string }
 function uid() { return Math.random().toString(36).slice(2, 9); }
 
 const FIELD =
-  "w-full text-sm border border-[#EAE4D8] rounded-lg px-2.5 py-1.5 outline-none " +
-  "focus:border-[#FF6B2B] bg-[#F5F0E8] text-[#2C2A28] placeholder-[#B8AE9A]";
-const FIELD_LABEL = "text-[10px] text-[#B8AE9A] mb-1 block";
+  "w-full text-sm border border-[#2A241E] rounded-lg px-2.5 py-1.5 outline-none " +
+  "focus:border-[#FF6B2B] bg-[#1E1A16] text-[#F2EDE8] placeholder-[#6B5F57]";
+const FIELD_LABEL = "text-[10px] text-[#8F827A] mb-1 block";
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -48,6 +48,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [newDeliverable, setNewDeliverable] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [notesDirty, setNotesDirty] = useState(false);
+  const [copiedKickoff, setCopiedKickoff] = useState(false);
   const [title, setTitle] = useState("");
 
   const load = useCallback(async () => {
@@ -154,14 +155,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-[#B8AE9A]">
+      <div className="flex items-center justify-center py-20 text-[#8F827A]">
         <Loader2 size={20} className="animate-spin mr-2" /> Loading…
       </div>
     );
   }
 
   if (!project) {
-    return <div className="text-[#B8AE9A] py-10 text-sm">Project not found.</div>;
+    return <div className="text-[#8F827A] py-10 text-sm">Project not found.</div>;
   }
 
   const meta = STATUS_META[project.status];
@@ -173,14 +174,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Back + header */}
       <div>
-        {/* Hover brightens. It darkened to #6B5F50 before, which on this dark
+        {/* Hover brightens. It darkened to #C4B8AE before, which on this dark
             ground made the link recede exactly when it should respond. */}
-        <Link href="/projects" className="flex items-center gap-1.5 text-sm text-[#B8AE9A] hover:text-[#F2EDE8] mb-4 transition-colors w-fit">
+        <Link href="/projects" className="flex items-center gap-1.5 text-sm text-[#8F827A] hover:text-[#F2EDE8] mb-4 transition-colors w-fit">
           <ArrowLeft size={14} /> All Projects
         </Link>
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-mono text-[#B8AE9A] mb-1">{project.client?.name ?? "—"}</p>
+            <p className="text-xs font-mono text-[#8F827A] mb-1">{project.client?.name ?? "—"}</p>
             {/* Always an input, styled as the heading, rather than a
                 click-to-edit mode. No colour class: this sits on the dark page
                 ground, not inside a cream card, so it inherits #F2EDE8. */}
@@ -197,10 +198,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                          border-b border-transparent hover:border-[#3A352E] focus:border-[#FF6B2B]
                          transition-colors"
             />
-            {/* #6B5F50 on the dark ground was about 2:1 contrast. #B8AE9A
+            {/* #C4B8AE on the dark ground was about 2:1 contrast. #8F827A
                 matches the client name above it and stays legible. */}
             {project.type && (
-              <p className="text-sm text-[#B8AE9A] mt-1">{TYPE_LABELS[project.type]}</p>
+              <p className="text-sm text-[#8F827A] mt-1">{TYPE_LABELS[project.type]}</p>
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -209,9 +210,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </span>
             {project.value !== null && project.value > 0 && (
               <span className={`text-xs font-mono px-3 py-1 rounded-full ${
-                project.paid ? "bg-green-50 text-[#2D7D46]" : "bg-[#EAE4D8] text-[#6B5F50]"
+                project.billing_type === "retainer"
+                  ? "bg-[#12241A] text-[#3FB86B]"
+                  : project.paid ? "bg-[#12241A] text-[#3FB86B]" : "bg-[#1E1A16] text-[#C4B8AE]"
               }`}>
-                ${project.value.toLocaleString()}{project.paid ? " ✓ paid" : " unpaid"}
+                ${project.value.toLocaleString()}
+                {/* A retainer is never "paid" — it recurs. Saying unpaid here was
+                    the same mistake the old top bar made, one card at a time. */}
+                {project.billing_type === "retainer" ? "/mo" : project.paid ? " ✓ paid" : " unpaid"}
               </span>
             )}
           </div>
@@ -219,7 +225,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {error !== null && (
-        <div role="alert" className="flex items-start justify-between gap-4 bg-red-50 border border-[#C0392B] rounded-lg px-4 py-3">
+        <div role="alert" className="flex items-start justify-between gap-4 bg-[#2A1614] border border-[#E2564A] rounded-lg px-4 py-3">
           <p className="text-sm text-[#922B21]">{error}</p>
           <button onClick={() => setError(null)} className="text-xs text-[#922B21] hover:underline shrink-0">
             Dismiss
@@ -231,8 +237,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         {/* Left col — status + meta */}
         <div className="space-y-4">
           {/* Status selector */}
-          <div className="bg-white rounded-xl border border-[#EAE4D8] p-4">
-            <p className="text-xs font-medium text-[#B8AE9A] uppercase tracking-wider mb-3">Status</p>
+          <div className="bg-[#161310] rounded-xl border border-[#2A241E] p-4">
+            <p className="text-xs font-medium text-[#8F827A] uppercase tracking-wider mb-3">Status</p>
             <div className="space-y-1">
               {(Object.keys(STATUS_META) as ProjectStatus[]).map((s) => {
                 const m = STATUS_META[s];
@@ -242,7 +248,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     key={s}
                     onClick={() => patch({ status: s })}
                     className={`w-full text-left text-sm px-3 py-2 rounded-lg transition-colors font-medium ${
-                      active ? `${m.bg} ${m.color}` : "text-[#B8AE9A] hover:bg-[#F5F0E8] hover:text-[#6B5F50]"
+                      active ? `${m.bg} ${m.color}` : "text-[#8F827A] hover:bg-[#1E1A16] hover:text-[#C4B8AE]"
                     }`}
                   >
                     {m.label}
@@ -255,8 +261,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           {/* Details — every field renders whether or not it has a value, so an
               empty one can be filled in. Guarding these on truthiness meant a
               project with no deadline could never be given one. */}
-          <div className="bg-white rounded-xl border border-[#EAE4D8] p-4 space-y-3">
-            <p className="text-xs font-medium text-[#B8AE9A] uppercase tracking-wider">Details</p>
+          <div className="bg-[#161310] rounded-xl border border-[#2A241E] p-4 space-y-3">
+            <p className="text-xs font-medium text-[#8F827A] uppercase tracking-wider">Details</p>
 
             <div>
               <label htmlFor="type" className={FIELD_LABEL}>Type</label>
@@ -285,7 +291,22 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div>
-              <label htmlFor="value" className={FIELD_LABEL}>Value</label>
+              <label htmlFor="billing_type" className={FIELD_LABEL}>Billing</label>
+              <select
+                id="billing_type"
+                value={project.billing_type}
+                onChange={(e) => patch({ billing_type: e.target.value as BillingType })}
+                className={FIELD}
+              >
+                <option value="one_time">One-time — fixed contract</option>
+                <option value="retainer">Retainer — per month</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="value" className={FIELD_LABEL}>
+                {project.billing_type === "retainer" ? "Monthly amount" : "Value"}
+              </label>
               <div className="flex items-center gap-2">
                 <input
                   id="value"
@@ -297,17 +318,96 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   placeholder="0"
                   className={FIELD}
                 />
-                <button
-                  onClick={() => patch({ paid: !project.paid })}
-                  className={`text-[10px] font-semibold px-2 py-1.5 rounded shrink-0 transition-colors ${
-                    project.paid
-                      ? "bg-[#2D7D46] text-white"
-                      : "bg-[#EAE4D8] text-[#6B5F50] hover:bg-[#D4CCBC]"
-                  }`}
-                >
-                  {project.paid ? "Paid ✓" : "Mark Paid"}
-                </button>
+                {project.billing_type === "one_time" && (
+                  <button
+                    onClick={() => patch({ paid: !project.paid })}
+                    className={`text-[10px] font-semibold px-2 py-1.5 rounded shrink-0 transition-colors ${
+                      project.paid
+                        ? "bg-[#3FB86B] text-white"
+                        : "bg-[#1E1A16] text-[#C4B8AE] hover:bg-[#3A322A]"
+                    }`}
+                  >
+                    {project.paid ? "Paid ✓" : "Mark Paid"}
+                  </button>
+                )}
               </div>
+            </div>
+
+            {/* Money and blockers. These two feed the Projects header directly —
+                this is where "To Invoice" and "Needs You" actually get set. */}
+            <div>
+              <label htmlFor="to_invoice" className={FIELD_LABEL}>Ready to invoice ($)</label>
+              <input
+                id="to_invoice"
+                type="number"
+                min={0}
+                step={1}
+                value={project.to_invoice || ""}
+                onChange={(e) => patch({ to_invoice: e.target.value === "" ? 0 : Number(e.target.value) })}
+                placeholder="0"
+                className={FIELD}
+              />
+              <input
+                aria-label="What the invoice is for"
+                type="text"
+                defaultValue={project.to_invoice_note ?? ""}
+                onBlur={(e) => {
+                  const next = e.target.value.trim();
+                  if (next !== (project.to_invoice_note ?? "")) patch({ to_invoice_note: next || null });
+                }}
+                placeholder="What it's for — e.g. M1 design sign-off"
+                className={`${FIELD} mt-1.5`}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="blocked_on" className={FIELD_LABEL}>Waiting on</label>
+              <select
+                id="blocked_on"
+                value={project.blocked_on ?? ""}
+                onChange={(e) => patch({ blocked_on: (e.target.value || null) as BlockedOn | null })}
+                className={FIELD}
+              >
+                <option value="">Nothing — it&apos;s moving</option>
+                <option value="me">You</option>
+                <option value="client">The client</option>
+              </select>
+              {project.blocked_on && (
+                <input
+                  aria-label="What it is waiting on"
+                  type="text"
+                  defaultValue={project.blocked_note ?? ""}
+                  onBlur={(e) => {
+                    const next = e.target.value.trim();
+                    if (next !== (project.blocked_note ?? "")) patch({ blocked_note: next || null });
+                  }}
+                  placeholder="What exactly — e.g. DNS access"
+                  className={`${FIELD} mt-1.5`}
+                />
+              )}
+            </div>
+
+            <div>
+              <label className={FIELD_LABEL}>Kickoff link</label>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = `${window.location.origin}/kickoff?p=${project.id}`;
+                  navigator.clipboard.writeText(url)
+                    .then(() => { setCopiedKickoff(true); setTimeout(() => setCopiedKickoff(false), 1600); })
+                    .catch(() => {});
+                }}
+                className={`w-full text-left text-sm px-3 py-2 rounded-lg border transition-colors ${
+                  copiedKickoff
+                    ? "border-[#3FB86B] bg-[#12241A] text-[#3FB86B]"
+                    : "border-[#2A241E] bg-[#1E1A16] text-[#C4B8AE] hover:border-[#3A322A]"
+                }`}
+              >
+                {copiedKickoff ? "Copied — send it to them" : "Copy kickoff link"}
+              </button>
+              <p className="text-[11px] text-[#8F827A] mt-1 leading-relaxed">
+                Collects DNS access, brand files and who signs off. Answers append to the notes below.
+              </p>
             </div>
 
             <div>
@@ -333,10 +433,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               )}
             </div>
 
-            <div className="pt-2 border-t border-[#EAE4D8]">
+            <div className="pt-2 border-t border-[#2A241E]">
               <button
                 onClick={deleteProject}
-                className="text-xs text-[#C0392B] hover:text-[#922B21] transition-colors"
+                className="text-xs text-[#E2564A] hover:text-[#922B21] transition-colors"
               >
                 Delete project
               </button>
@@ -347,27 +447,27 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         {/* Right col — deliverables + notes */}
         <div className="md:col-span-2 space-y-4">
           {/* Deliverables */}
-          <div className="bg-white rounded-xl border border-[#EAE4D8] p-5">
+          <div className="bg-[#161310] rounded-xl border border-[#2A241E] p-5">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-xs font-medium text-[#B8AE9A] uppercase tracking-wider">Deliverables</p>
+              <p className="text-xs font-medium text-[#8F827A] uppercase tracking-wider">Deliverables</p>
               {deliverables.length > 0 && (
-                <span className="text-xs font-mono text-[#6B5F50]">{doneCount}/{deliverables.length} — {pct}%</span>
+                <span className="text-xs font-mono text-[#C4B8AE]">{doneCount}/{deliverables.length} — {pct}%</span>
               )}
             </div>
 
             {/* Progress bar */}
             {deliverables.length > 0 && (
-              <div className="h-1.5 bg-[#EAE4D8] rounded-full overflow-hidden mb-4">
+              <div className="h-1.5 bg-[#1E1A16] rounded-full overflow-hidden mb-4">
                 <div
                   className="h-full rounded-full transition-all"
-                  style={{ width: `${pct}%`, backgroundColor: pct === 100 ? "#2D7D46" : "#FF6B2B" }}
+                  style={{ width: `${pct}%`, backgroundColor: pct === 100 ? "#3FB86B" : "#FF6B2B" }}
                 />
               </div>
             )}
 
             <div className="space-y-1.5 mb-3">
               {deliverables.length === 0 && (
-                <p className="text-sm text-[#D4CCBC] py-2">No deliverables yet.</p>
+                <p className="text-sm text-[#8F827A] py-2">No deliverables yet.</p>
               )}
               {deliverables.map((d) => (
                 <div key={d.id} className="flex items-center gap-3 group py-1">
@@ -379,7 +479,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     }
                     aria-label={d.done ? "Mark not done" : "Mark done"}
                     className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                      d.done ? "bg-[#2D7D46] border-[#2D7D46]" : "border-[#D4CCBC] hover:border-[#FF6B2B]"
+                      d.done ? "bg-[#3FB86B] border-[#3FB86B]" : "border-[#3A322A] hover:border-[#FF6B2B]"
                     }`}
                   >
                     {d.done && <Check size={12} strokeWidth={3} className="text-white" />}
@@ -399,14 +499,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     }}
                     aria-label="Deliverable"
                     className={`text-sm flex-1 bg-transparent outline-none border-b border-transparent
-                                hover:border-[#EAE4D8] focus:border-[#FF6B2B] transition-colors ${
-                      d.done ? "line-through text-[#B8AE9A]" : "text-[#2C2A28]"
+                                hover:border-[#2A241E] focus:border-[#FF6B2B] transition-colors ${
+                      d.done ? "line-through text-[#8F827A]" : "text-[#F2EDE8]"
                     }`}
                   />
                   <button
                     onClick={() => setDeliverables(deliverables.filter((x) => x.id !== d.id))}
                     aria-label="Remove deliverable"
-                    className="opacity-0 group-hover:opacity-100 focus:opacity-100 text-[#D4CCBC] hover:text-[#C0392B] transition-all"
+                    className="opacity-0 group-hover:opacity-100 focus:opacity-100 text-[#8F827A] hover:text-[#E2564A] transition-all"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -421,7 +521,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 onChange={(e) => setNewDeliverable(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") addDeliverable(); }}
                 placeholder="Add deliverable…"
-                className="flex-1 text-sm border border-[#EAE4D8] rounded-lg px-3 py-2 outline-none focus:border-[#FF6B2B] bg-[#F5F0E8] text-[#2C2A28] placeholder-[#B8AE9A]"
+                className="flex-1 text-sm border border-[#2A241E] rounded-lg px-3 py-2 outline-none focus:border-[#FF6B2B] bg-[#1E1A16] text-[#F2EDE8] placeholder-[#6B5F57]"
               />
               <button
                 onClick={addDeliverable}
@@ -434,9 +534,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* Notes */}
-          <div className="bg-white rounded-xl border border-[#EAE4D8] p-5">
+          <div className="bg-[#161310] rounded-xl border border-[#2A241E] p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-medium text-[#B8AE9A] uppercase tracking-wider">Notes</p>
+              <p className="text-xs font-medium text-[#8F827A] uppercase tracking-wider">Notes</p>
               {notesDirty && (
                 <button
                   onClick={saveNotes}
@@ -452,7 +552,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               onChange={(e) => { setEditNotes(e.target.value); setNotesDirty(true); }}
               rows={5}
               placeholder="Project notes, brief details, client feedback…"
-              className="w-full text-sm text-[#2C2A28] placeholder-[#D4CCBC] outline-none resize-none bg-transparent leading-relaxed"
+              className="w-full text-sm text-[#F2EDE8] placeholder-[#3A322A] outline-none resize-none bg-transparent leading-relaxed"
             />
           </div>
         </div>

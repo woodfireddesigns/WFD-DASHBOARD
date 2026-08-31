@@ -25,7 +25,7 @@ interface SummaryStats {
   tasksToday: number;
   tasksDone: number;
   activeProjects: number;
-  hotLeads: number;
+  openDeals: number;
   outstandingInvoices: number;
   outstandingAmount: number;
 }
@@ -66,9 +66,87 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string 
       borderRadius: 10, padding: "16px 20px", flex: 1,
       boxShadow: accent ? "0 0 20px rgba(255,107,43,0.06)" : "none",
     }}>
-      <p style={{ fontSize: 10.5, fontWeight: 500, letterSpacing: "0.1em", color: "#5A4E46", textTransform: "uppercase", marginBottom: 8 }}>{label}</p>
+      <p style={{ fontSize: 10.5, fontWeight: 500, letterSpacing: "0.1em", color: "#8F827A", textTransform: "uppercase", marginBottom: 8 }}>{label}</p>
       <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 32, color: accent ? "#FF6B2B" : "#F2EDE8", lineHeight: 1, letterSpacing: "0.02em" }}>{value}</p>
-      {sub && <p style={{ fontSize: 11.5, color: "#5A4E46", marginTop: 6 }}>{sub}</p>}
+      {sub && <p style={{ fontSize: 11.5, color: "#8F827A", marginTop: 6 }}>{sub}</p>}
+    </div>
+  );
+}
+
+// ── Habit row ─────────────────────────────────────────────────────────────────
+
+/**
+ * A habit, and the two controls that were unreachable.
+ *
+ * The pencil used to be rendered at `opacity: 0` and only faded in on its own
+ * `mouseenter` — an 11px target you had to already know was there and land on
+ * blind, on a row whose click handler ticks the habit off. In practice habits
+ * could not be renamed and could not be deleted. It now sits at rest in a
+ * muted colour, brightens with the row, and has a hit area worth aiming at.
+ */
+function HabitRow({ habit, done, busy, onToggle, onEdit }: {
+  habit: Habit;
+  done: boolean;
+  busy: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
+        background: done ? "rgba(255,107,43,0.05)" : "#0F0D0B",
+        border: `1px solid ${done ? "rgba(255,107,43,0.2)" : hovered ? "#3A322A" : "#2A241E"}`,
+        borderRadius: 8, transition: "all 0.2s", cursor: "pointer",
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={onToggle}
+    >
+      <div style={{
+        width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+        border: `1.5px solid ${done ? "#FF6B2B" : "#2A241E"}`,
+        background: done ? "#FF6B2B" : "transparent",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        transition: "all 0.2s", opacity: busy ? 0.5 : 1,
+      }}>
+        {done && <Check size={11} color="#fff" strokeWidth={3} />}
+      </div>
+      <span style={{ fontSize: 16 }}>{habit.icon}</span>
+      <p style={{
+        flex: 1, fontSize: 13.5, fontWeight: 500,
+        color: done ? "#8F827A" : "#F2EDE8",
+        textDecoration: done ? "line-through" : "none",
+      }}>
+        {habit.name}
+      </p>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, color: done ? "#FF6B2B" : "#8F827A" }}>
+          +{habit.points}pts
+        </span>
+        {/* A bordered chip, not a bare glyph. A 13px icon floating in a row
+            whose whole surface is a toggle does not read as a button, which is
+            how the edit control stayed lost even after it was made visible. */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
+          title="Edit or delete this habit"
+          aria-label={`Edit ${habit.name}`}
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            marginLeft: 8, padding: "5px 10px",
+            borderRadius: 6, cursor: "pointer",
+            fontSize: 11.5, fontFamily: "Inter, sans-serif",
+            background: hovered ? "rgba(255,107,43,0.12)" : "#1E1A16",
+            border: `1px solid ${hovered ? "rgba(255,107,43,0.4)" : "#3A322A"}`,
+            color: hovered ? "#FF6B2B" : "#C4B8AE",
+            transition: "all 0.15s",
+          }}
+        >
+          <Edit2 size={12} /> Edit
+        </button>
+      </div>
     </div>
   );
 }
@@ -87,13 +165,15 @@ export default function HomePage() {
   const [toggling, setToggling] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    const [habitsRes, todayRes, allRes, tasksRes, projectsRes, leadsRes, invoicesRes] = await Promise.all([
+    const [habitsRes, todayRes, allRes, tasksRes, projectsRes, dealsRes, invoicesRes] = await Promise.all([
       supabase.from("habits").select("*").eq("is_active", true).order("sort_order"),
       supabase.from("habit_completions").select("*").eq("date", today),
-      supabase.from("habit_completions").select("points"),
+      // habit_id and date, not just points: unticking a habit has to remove one
+      // day's row from the running total, and it cannot find that row by points.
+      supabase.from("habit_completions").select("habit_id,date,points"),
       supabase.from("tasks").select("status").eq("date", today),
       supabase.from("projects").select("status").in("status", ["discovery","design","build","review"]),
-      supabase.from("roofing_leads").select("pipeline_stage").in("pipeline_stage", ["call_booked","proposal_sent","responded"]),
+      supabase.from("deals").select("stage").in("stage", ["contacted", "proposal"]),
       supabase.from("invoices").select("amount,status").eq("status", "sent"),
     ]);
 
@@ -107,7 +187,7 @@ export default function HomePage() {
       tasksToday: tasks.length,
       tasksDone: tasks.filter(t => t.status === "done").length,
       activeProjects: (projectsRes.data ?? []).length,
-      hotLeads: (leadsRes.data ?? []).length,
+      openDeals: (dealsRes.data ?? []).length,
       outstandingInvoices: invoices.length,
       outstandingAmount: invoices.reduce((s, i) => s + (i.amount ?? 0), 0),
     });
@@ -129,7 +209,7 @@ export default function HomePage() {
     if (done) {
       await supabase.from("habit_completions").delete().eq("habit_id", habit.id).eq("date", today);
       setCompletions(p => p.filter(c => c.habit_id !== habit.id));
-      setAllCompletions(p => p.filter(c => !(c.habit_id === habit.id)));
+      setAllCompletions(p => p.filter(c => !(c.habit_id === habit.id && c.date === today)));
     } else {
       const { data } = await supabase.from("habit_completions").insert({ habit_id: habit.id, date: today, points: habit.points }).select().single();
       if (data) { setCompletions(p => [...p, data as HabitCompletion]); setAllCompletions(p => [...p, data as HabitCompletion]); }
@@ -176,7 +256,7 @@ export default function HomePage() {
         <h2 style={{ fontFamily: "Oswald, sans-serif", fontSize: 28, color: "#F2EDE8", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 4 }}>
           {greeting}, Michael.
         </h2>
-        <p style={{ fontSize: 13.5, color: "#5A4E46" }}>
+        <p style={{ fontSize: 13.5, color: "#8F827A" }}>
           {stats?.tasksDone === stats?.tasksToday && (stats?.tasksToday ?? 0) > 0
             ? "All tasks done today. Keep the fire going."
             : `${stats?.tasksDone ?? 0} of ${stats?.tasksToday ?? 0} tasks done today.`}
@@ -187,7 +267,7 @@ export default function HomePage() {
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <StatCard label="Tasks Today" value={`${stats?.tasksDone ?? 0}/${stats?.tasksToday ?? 0}`} sub="completed" accent={(stats?.tasksDone ?? 0) === (stats?.tasksToday ?? 0) && (stats?.tasksToday ?? 0) > 0} />
         <StatCard label="Active Projects" value={stats?.activeProjects ?? 0} sub="in progress" />
-        <StatCard label="Hot Leads" value={stats?.hotLeads ?? 0} sub="need attention" accent={(stats?.hotLeads ?? 0) > 0} />
+        <StatCard label="Open Deals" value={stats?.openDeals ?? 0} sub="in the pipeline" accent={(stats?.openDeals ?? 0) > 0} />
         <StatCard label="Outstanding" value={stats?.outstandingAmount ? `$${stats.outstandingAmount.toLocaleString()}` : "$0"} sub={`${stats?.outstandingInvoices ?? 0} invoice${(stats?.outstandingInvoices ?? 0) !== 1 ? "s" : ""}`} accent={(stats?.outstandingAmount ?? 0) > 0} />
       </div>
 
@@ -202,7 +282,7 @@ export default function HomePage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
               <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 15, color: "#F2EDE8", textTransform: "uppercase", letterSpacing: "0.04em" }}>Daily Habits</p>
-              <p style={{ fontSize: 11.5, color: "#5A4E46", marginTop: 2 }}>+{todayPoints} pts earned today</p>
+              <p style={{ fontSize: 11.5, color: "#8F827A", marginTop: 2 }}>+{todayPoints} pts earned today</p>
             </div>
             <button onClick={() => setAddingHabit(true)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,107,43,0.1)", border: "1px solid rgba(255,107,43,0.2)", borderRadius: 6, color: "#FF6B2B", fontSize: 12, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
               <Plus size={12} /> Add Habit
@@ -210,48 +290,19 @@ export default function HomePage() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {habits.map(habit => {
-              const done = isCompleted(habit.id);
-              const isToggling = toggling === habit.id;
-              return (
-                <div
-                  key={habit.id}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
-                    background: done ? "rgba(255,107,43,0.05)" : "#0F0D0B",
-                    border: `1px solid ${done ? "rgba(255,107,43,0.2)" : "#2A241E"}`,
-                    borderRadius: 8, transition: "all 0.2s", cursor: "pointer",
-                  }}
-                  onClick={() => toggleHabit(habit)}
-                >
-                  <div style={{
-                    width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                    border: `1.5px solid ${done ? "#FF6B2B" : "#2A241E"}`,
-                    background: done ? "#FF6B2B" : "transparent",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    transition: "all 0.2s", opacity: isToggling ? 0.5 : 1,
-                  }}>
-                    {done && <Check size={11} color="#fff" strokeWidth={3} />}
-                  </div>
-                  <span style={{ fontSize: 16 }}>{habit.icon}</span>
-                  <p style={{ flex: 1, fontSize: 13.5, fontWeight: 500, color: done ? "#5A4E46" : "#F2EDE8", textDecoration: done ? "line-through" : "none" }}>
-                    {habit.name}
-                  </p>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 11, fontFamily: "JetBrains Mono, monospace", color: done ? "#FF6B2B" : "#3D342C" }}>+{habit.points}pts</span>
-                    <button onClick={(e) => { e.stopPropagation(); setEditingHabit(habit); }}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "#3D342C", padding: 2, opacity: 0, transition: "opacity 0.15s" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-                      onMouseLeave={(e) => (e.currentTarget.style.opacity = "0")}>
-                      <Edit2 size={11} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+            {habits.map(habit => (
+              <HabitRow
+                key={habit.id}
+                habit={habit}
+                done={isCompleted(habit.id)}
+                busy={toggling === habit.id}
+                onToggle={() => toggleHabit(habit)}
+                onEdit={() => setEditingHabit(habit)}
+              />
+            ))}
 
             {habits.length === 0 && (
-              <p style={{ fontSize: 13, color: "#3D342C", textAlign: "center", padding: "20px 0" }}>No habits yet. Add one to start your journey.</p>
+              <p style={{ fontSize: 13, color: "#8F827A", textAlign: "center", padding: "20px 0" }}>No habits yet. Add one to start your journey.</p>
             )}
           </div>
 
@@ -270,7 +321,7 @@ export default function HomePage() {
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={addHabit} style={{ flex: 1, padding: "7px", background: "#FF6B2B", border: "none", borderRadius: 6, color: "#fff", fontSize: 12.5, fontWeight: 600, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Add</button>
-                <button onClick={() => setAddingHabit(false)} style={{ padding: "7px 14px", background: "none", border: "1px solid #2A241E", borderRadius: 6, color: "#5A4E46", fontSize: 12.5, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Cancel</button>
+                <button onClick={() => setAddingHabit(false)} style={{ padding: "7px 14px", background: "none", border: "1px solid #2A241E", borderRadius: 6, color: "#8F827A", fontSize: 12.5, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Cancel</button>
               </div>
             </div>
           )}
@@ -290,7 +341,7 @@ export default function HomePage() {
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
                 <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 22, color: level.color, textTransform: "uppercase", letterSpacing: "0.03em" }}>{level.name}</p>
-                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#5A4E46" }}>LVL {level.levelIndex}</p>
+                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#8F827A" }}>LVL {level.levelIndex}</p>
               </div>
               <div style={{ height: 6, background: "#1E1A16", borderRadius: 99, overflow: "hidden" }}>
                 <div style={{
@@ -300,7 +351,7 @@ export default function HomePage() {
                   boxShadow: `0 0 8px ${level.color}60`,
                 }} />
               </div>
-              <p style={{ fontSize: 11, color: "#3D342C", marginTop: 5 }}>
+              <p style={{ fontSize: 11, color: "#8F827A", marginTop: 5 }}>
                 {level.progress}% → {level.nextLvl.name}
               </p>
             </div>
@@ -309,12 +360,12 @@ export default function HomePage() {
             {[
               { icon: <Zap size={12} color="#FF6B2B" />, label: "Total XP", val: `${totalPoints.toLocaleString()} pts` },
               { icon: <Flame size={12} color="#FF9500" />, label: "Today", val: `+${todayPoints} pts` },
-              { icon: <Target size={12} color="#5A4E46" />, label: "Habits done", val: `${completions.length}/${habits.length}` },
+              { icon: <Target size={12} color="#8F827A" />, label: "Habits done", val: `${completions.length}/${habits.length}` },
             ].map(({ icon, label, val }) => (
               <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #1E1A16" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                   {icon}
-                  <p style={{ fontSize: 12.5, color: "#5A4E46" }}>{label}</p>
+                  <p style={{ fontSize: 12.5, color: "#8F827A" }}>{label}</p>
                 </div>
                 <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 12, color: "#9A8E85" }}>{val}</p>
               </div>
@@ -323,8 +374,8 @@ export default function HomePage() {
             {/* Year progress */}
             <div style={{ marginTop: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                <p style={{ fontSize: 11, color: "#3D342C" }}>Year progress</p>
-                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#3D342C" }}>
+                <p style={{ fontSize: 11, color: "#8F827A" }}>Year progress</p>
+                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#8F827A" }}>
                   {Math.round((new Date().getDate() + new Date().getMonth() * 30.4) / 3.65)}%
                 </p>
               </div>
@@ -346,7 +397,7 @@ export default function HomePage() {
           <div style={{ background: "#161310", border: "1px solid #2A241E", borderRadius: 12, padding: 24, width: 360 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <p style={{ fontFamily: "Oswald, sans-serif", fontSize: 16, color: "#F2EDE8", textTransform: "uppercase" }}>Edit Habit</p>
-              <button onClick={() => setEditingHabit(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#5A4E46" }}><X size={16} /></button>
+              <button onClick={() => setEditingHabit(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#8F827A" }}><X size={16} /></button>
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
               <input value={editingHabit.icon} onChange={e => setEditingHabit(p => p ? { ...p, icon: e.target.value } : p)}
@@ -355,13 +406,16 @@ export default function HomePage() {
                 style={{ flex: 1, fontSize: 13.5, background: "#0F0D0B", border: "1px solid #2A241E", borderRadius: 6, padding: "8px 12px", color: "#F2EDE8", outline: "none", fontFamily: "Inter, sans-serif" }} />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
-              <p style={{ fontSize: 12.5, color: "#5A4E46" }}>Points per completion</p>
+              <p style={{ fontSize: 12.5, color: "#8F827A" }}>Points per completion</p>
               <input type="number" value={editingHabit.points} onChange={e => setEditingHabit(p => p ? { ...p, points: parseInt(e.target.value) || 10 } : p)}
                 style={{ width: 70, fontSize: 13, background: "#0F0D0B", border: "1px solid #2A241E", borderRadius: 6, padding: "6px 8px", color: "#FF6B2B", outline: "none", textAlign: "center", fontFamily: "JetBrains Mono, monospace" }} />
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => saveHabit(editingHabit)} style={{ flex: 1, padding: "9px", background: "#FF6B2B", border: "none", borderRadius: 7, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Save</button>
-              <button onClick={() => { deleteHabit(editingHabit.id); setEditingHabit(null); }}
+              <button onClick={() => {
+                if (!confirm(`Delete "${editingHabit.name}"? Its completed days stay in your XP.`)) return;
+                deleteHabit(editingHabit.id); setEditingHabit(null);
+              }}
                 style={{ padding: "9px 16px", background: "rgba(192,57,43,0.1)", border: "1px solid rgba(192,57,43,0.2)", borderRadius: 7, color: "#C0392B", fontSize: 13, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Delete</button>
             </div>
           </div>

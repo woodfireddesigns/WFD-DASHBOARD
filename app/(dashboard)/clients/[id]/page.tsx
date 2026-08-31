@@ -7,13 +7,13 @@ import { supabase, Client, Project, ProjectStatus } from "@/lib/supabase";
 import { ArrowLeft, Mail, Phone, Save, ExternalLink, Loader2 } from "lucide-react";
 
 const STATUS_META: Record<ProjectStatus, { label: string; color: string; bg: string }> = {
-  discovery: { label: "Discovery", color: "#1E5FAA", bg: "#EEF4FF" },
-  design:    { label: "Design",    color: "#B86B10", bg: "#FEF3E2" },
-  build:     { label: "Build",     color: "#FF6B2B", bg: "#FFF3EE" },
-  review:    { label: "Review",    color: "#6B6560", bg: "#F0EBE1" },
-  delivered: { label: "Delivered", color: "#1E7A3C", bg: "#ECFBF0" },
-  paused:    { label: "Paused",    color: "#A09890", bg: "#F8F5F0" },
-  cancelled: { label: "Cancelled", color: "#B83232", bg: "#FEE8E8" },
+  discovery: { label: "Discovery", color: "#5B9BD5", bg: "#152232" },
+  design:    { label: "Design",    color: "#E8A33D", bg: "#2C2210" },
+  build:     { label: "Build",     color: "#FF6B2B", bg: "#301B11" },
+  review:    { label: "Review",    color: "#C4B8AE", bg: "#1E1A16" },
+  delivered: { label: "Delivered", color: "#3FB86B", bg: "#12251A" },
+  paused:    { label: "Paused",    color: "#8F827A", bg: "#1E1A16" },
+  cancelled: { label: "Cancelled", color: "#E2564A", bg: "#2C1614" },
 };
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -29,10 +29,10 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 const S = {
-  fieldLabel: { display: "block", fontSize: 10.5, fontWeight: 500, color: "#A09890", textTransform: "uppercase" as const, letterSpacing: "0.07em", marginBottom: 4 },
-  fieldInput: { width: "100%", fontSize: 13, borderBottom: "1px solid #E8E2D8", padding: "5px 0", outline: "none", background: "transparent", color: "#1E1C1A", fontFamily: "Inter, sans-serif", transition: "border-color 0.15s" },
-  select: { width: "100%", fontSize: 13, borderBottom: "1px solid #E8E2D8", padding: "5px 0", outline: "none", background: "transparent", color: "#1E1C1A" },
-  card: { backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 10, padding: "18px 20px" } as React.CSSProperties,
+  fieldLabel: { display: "block", fontSize: 10.5, fontWeight: 500, color: "#8F827A", textTransform: "uppercase" as const, letterSpacing: "0.07em", marginBottom: 4 },
+  fieldInput: { width: "100%", fontSize: 13, borderBottom: "1px solid #2A241E", padding: "5px 0", outline: "none", background: "transparent", color: "#F2EDE8", fontFamily: "Inter, sans-serif", transition: "border-color 0.15s" },
+  select: { width: "100%", fontSize: 13, borderBottom: "1px solid #2A241E", padding: "5px 0", outline: "none", background: "transparent", color: "#F2EDE8" },
+  card: { backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 10, padding: "18px 20px" } as React.CSSProperties,
 };
 
 function Field({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
@@ -42,7 +42,7 @@ function Field({ label, value, onChange, type = "text" }: { label: string; value
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
         style={S.fieldInput}
         onFocus={(e) => (e.target.style.borderColor = "#FF6B2B")}
-        onBlur={(e) => (e.target.style.borderColor = "#E8E2D8")} />
+        onBlur={(e) => (e.target.style.borderColor = "#2A241E")} />
     </div>
   );
 }
@@ -88,11 +88,11 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   }
 
   if (loading) return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", paddingTop: 80, color: "#A09890" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", paddingTop: 80, color: "#8F827A" }}>
       <Loader2 size={16} className="animate-spin" /><span style={{ fontSize: 13 }}>Loading…</span>
     </div>
   );
-  if (!client) return <div style={{ fontSize: 13, color: "#A09890", paddingTop: 40 }}>Client not found.</div>;
+  if (!client) return <div style={{ fontSize: 13, color: "#8F827A", paddingTop: 40 }}>Client not found.</div>;
 
   const totalValue   = projects.reduce((s, p) => s + (p.value ?? 0), 0);
   const paidValue    = projects.filter((p) => p.paid).reduce((s, p) => s + (p.value ?? 0), 0);
@@ -103,26 +103,26 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       {/* Back + header */}
       <div>
         <Link href="/clients">
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12.5, color: "#A09890", marginBottom: 16, cursor: "pointer" }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#6B6560")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#A09890")}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12.5, color: "#8F827A", marginBottom: 16, cursor: "pointer" }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#C4B8AE")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#8F827A")}>
             <ArrowLeft size={13} /> All Clients
           </div>
         </Link>
 
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: "#1E1C1A", color: "#fff", fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg, #FF6B2B, #E85A1A)", color: "#fff", fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               {form.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h1 className="font-display" style={{ fontSize: 28, color: "#1E1C1A" }}>{form.name}</h1>
+              <h1 className="font-display" style={{ fontSize: 28, color: "#F2EDE8" }}>{form.name}</h1>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
-                {form.source && <span style={{ fontSize: 11, fontFamily: "JetBrains Mono, monospace", color: "#A09890" }}>{SOURCE_LABELS[form.source] ?? form.source}</span>}
+                {form.source && <span style={{ fontSize: 11, fontFamily: "JetBrains Mono, monospace", color: "#8F827A" }}>{SOURCE_LABELS[form.source] ?? form.source}</span>}
                 <span style={{
                   fontSize: 10.5, fontWeight: 600, padding: "2px 9px", borderRadius: 99,
-                  backgroundColor: form.mrr_status === "active" ? "#ECFBF0" : form.mrr_status === "churned" ? "#FEE8E8" : "#F0EBE1",
-                  color: form.mrr_status === "active" ? "#1E7A3C" : form.mrr_status === "churned" ? "#B83232" : "#A09890",
+                  backgroundColor: form.mrr_status === "active" ? "#12251A" : form.mrr_status === "churned" ? "#2C1614" : "#1E1A16",
+                  color: form.mrr_status === "active" ? "#3FB86B" : form.mrr_status === "churned" ? "#E2564A" : "#8F827A",
                 }}>
                   {form.mrr_status === "active" ? `Retainer · $${parseInt(form.mrr_amount || "0").toLocaleString()}/mo` : form.mrr_status === "churned" ? "Churned" : "Project Client"}
                 </span>
@@ -142,13 +142,13 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       {/* Stats strip */}
       <div style={{ display: "flex", gap: 10 }}>
         {[
-          { label: "Projects",    value: projects.length, color: "#1E1C1A" },
+          { label: "Projects",    value: projects.length, color: "#F2EDE8" },
           { label: "Active",      value: activeCount,     color: "#FF6B2B" },
-          { label: "Total Value", value: `$${totalValue.toLocaleString()}`, color: "#1E1C1A" },
-          { label: "Collected",   value: `$${paidValue.toLocaleString()}`, color: "#1E7A3C" },
+          { label: "Total Value", value: `$${totalValue.toLocaleString()}`, color: "#F2EDE8" },
+          { label: "Collected",   value: `$${paidValue.toLocaleString()}`, color: "#3FB86B" },
         ].map(({ label, value, color }) => (
-          <div key={label} style={{ flex: 1, backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 10, padding: "12px 16px" }}>
-            <p style={{ fontSize: 10, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>{label}</p>
+          <div key={label} style={{ flex: 1, backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 10, padding: "12px 16px" }}>
+            <p style={{ fontSize: 10, color: "#8F827A", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>{label}</p>
             <p className="font-display" style={{ fontSize: 22, color }}>{value}</p>
           </div>
         ))}
@@ -160,7 +160,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {/* Contact */}
           <div style={S.card}>
-            <p style={{ fontSize: 10.5, fontWeight: 600, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>Contact</p>
+            <p style={{ fontSize: 10.5, fontWeight: 600, color: "#8F827A", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>Contact</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <Field label="Business Name" value={form.name}         onChange={(v) => update("name", v)} />
               <Field label="Contact"       value={form.contact_name} onChange={(v) => update("contact_name", v)} />
@@ -172,14 +172,14 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
               </div>
             </div>
             {(form.email || form.phone) && (
-              <div style={{ display: "flex", gap: 12, marginTop: 14, paddingTop: 14, borderTop: "1px solid #E8E2D8" }}>
+              <div style={{ display: "flex", gap: 12, marginTop: 14, paddingTop: 14, borderTop: "1px solid #2A241E" }}>
                 {form.email && (
                   <a href={`mailto:${form.email}`} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#FF6B2B", textDecoration: "none" }}>
                     <Mail size={12} /> Email
                   </a>
                 )}
                 {form.phone && (
-                  <a href={`tel:${form.phone}`} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#6B6560", textDecoration: "none" }}>
+                  <a href={`tel:${form.phone}`} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#C4B8AE", textDecoration: "none" }}>
                     <Phone size={12} /> Call
                   </a>
                 )}
@@ -189,7 +189,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
           {/* Relationship */}
           <div style={S.card}>
-            <p style={{ fontSize: 10.5, fontWeight: 600, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>Relationship</p>
+            <p style={{ fontSize: 10.5, fontWeight: 600, color: "#8F827A", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>Relationship</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div>
                 <label style={S.fieldLabel}>Source</label>
@@ -222,14 +222,14 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
           {/* Notes */}
           <div style={S.card}>
-            <p style={{ fontSize: 10.5, fontWeight: 600, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Notes</p>
+            <p style={{ fontSize: 10.5, fontWeight: 600, color: "#8F827A", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Notes</p>
             <textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} rows={4} placeholder="Working style, preferences, context…"
-              style={{ width: "100%", fontSize: 13, border: "none", outline: "none", resize: "none", background: "transparent", fontFamily: "Inter, sans-serif", lineHeight: 1.6, color: "#6B6560" } as React.CSSProperties} />
+              style={{ width: "100%", fontSize: 13, border: "none", outline: "none", resize: "none", background: "transparent", fontFamily: "Inter, sans-serif", lineHeight: 1.6, color: "#C4B8AE" } as React.CSSProperties} />
           </div>
 
-          <button onClick={archive} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11.5, color: "#C8C0B8", textAlign: "left", padding: "0 4px" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#B83232")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#C8C0B8")}>
+          <button onClick={archive} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11.5, color: "#8F827A", textAlign: "left", padding: "0 4px" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#E2564A")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#8F827A")}>
             Archive client
           </button>
         </div>
@@ -237,15 +237,15 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
         {/* Right — projects */}
         <div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <p style={{ fontSize: 10.5, fontWeight: 600, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.08em" }}>Projects</p>
+            <p style={{ fontSize: 10.5, fontWeight: 600, color: "#8F827A", textTransform: "uppercase", letterSpacing: "0.08em" }}>Projects</p>
             <Link href="/projects">
               <span style={{ fontSize: 12, color: "#FF6B2B", cursor: "pointer" }}>+ New project</span>
             </Link>
           </div>
 
           {projects.length === 0 ? (
-            <div style={{ backgroundColor: "#fff", border: "1px dashed #E8E2D8", borderRadius: 10, padding: "40px 20px", textAlign: "center" }}>
-              <p style={{ fontSize: 13, color: "#C8C0B8" }}>No projects yet.</p>
+            <div style={{ backgroundColor: "#161310", border: "1px dashed #2A241E", borderRadius: 10, padding: "40px 20px", textAlign: "center" }}>
+              <p style={{ fontSize: 13, color: "#8F827A" }}>No projects yet.</p>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -257,25 +257,25 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
                 return (
                   <Link key={p.id} href={`/projects/${p.id}`}>
-                    <div style={{ backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 10, padding: "14px 16px", cursor: "pointer", transition: "border-color 0.15s, box-shadow 0.15s" }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#D9D1C3"; (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 6px rgba(0,0,0,0.05)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#E8E2D8"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
+                    <div style={{ backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 10, padding: "14px 16px", cursor: "pointer", transition: "border-color 0.15s, box-shadow 0.15s" }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#3A322A"; (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 6px rgba(0,0,0,0.05)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#2A241E"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: pct !== null ? 10 : 0 }}>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: "#1E1C1A", lineHeight: 1.3 }}>{p.name}</p>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#F2EDE8", lineHeight: 1.3 }}>{p.name}</p>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                           <span style={{ fontSize: 10.5, fontWeight: 600, padding: "2px 8px", borderRadius: 99, backgroundColor: meta.bg, color: meta.color }}>{meta.label}</span>
-                          <ExternalLink size={12} color="#C8C0B8" />
+                          <ExternalLink size={12} color="#8F827A" />
                         </div>
                       </div>
                       {pct !== null && (
-                        <div style={{ height: 3, backgroundColor: "#E8E2D8", borderRadius: 99, overflow: "hidden", marginBottom: 8 }}>
-                          <div style={{ height: "100%", width: `${pct}%`, backgroundColor: pct === 100 ? "#1E7A3C" : "#FF6B2B", borderRadius: 99, transition: "width 0.3s" }} />
+                        <div style={{ height: 3, backgroundColor: "#1E1A16", borderRadius: 99, overflow: "hidden", marginBottom: 8 }}>
+                          <div style={{ height: "100%", width: `${pct}%`, backgroundColor: pct === 100 ? "#3FB86B" : "#FF6B2B", borderRadius: 99, transition: "width 0.3s" }} />
                         </div>
                       )}
                       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                        {p.value && <span style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: p.paid ? "#1E7A3C" : "#A09890" }}>${p.value.toLocaleString()}{p.paid ? " ✓" : ""}</span>}
-                        {p.deadline && <span style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: "#A09890" }}>Due {new Date(p.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>}
-                        {deliverables.length > 0 && <span style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: "#A09890", marginLeft: "auto" }}>{done}/{deliverables.length}</span>}
+                        {p.value && <span style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: p.paid ? "#3FB86B" : "#8F827A" }}>${p.value.toLocaleString()}{p.paid ? " ✓" : ""}</span>}
+                        {p.deadline && <span style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: "#8F827A" }}>Due {new Date(p.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>}
+                        {deliverables.length > 0 && <span style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: "#8F827A", marginLeft: "auto" }}>{done}/{deliverables.length}</span>}
                       </div>
                     </div>
                   </Link>

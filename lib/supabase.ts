@@ -22,64 +22,11 @@ export const supabase = createBrowserClient(url, key);
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type TradesStage =
-  | "scraped"
-  | "outreach_active"
-  | "responded"
-  | "call_booked"
-  | "proposal_sent"
-  | "closed_won"
-  | "closed_lost";
-
-export type InboundStage =
-  | "new"
-  | "qualified"
-  | "proposal_sent"
-  | "closed_won"
-  | "closed_lost";
-
-export interface TradesLead {
-  id: string;
-  business_name: string | null;
-  city: string | null;
-  state: string | null;
-  grade: "A" | "B" | "C" | "ungraded";
-  score: number;
-  pipeline_stage: TradesStage;
-  sequence_status: string;
-  sequence_step: number;
-  outreach_sent: boolean;
-  response_received: boolean;
-  total_emails_sent: number;
-  open_count: number;
-  click_count: number;
-  email: string | null;
-  phone: string | null;
-  website_url: string | null;
-  notes: string | null;
-  last_outreach_at: string | null;
-  next_outreach_at: string | null;
-  slug: string | null;
-}
-
-export interface InboundLead {
-  id: string;
-  created_at: string;
-  name: string | null;
-  business_name: string | null;
-  email: string | null;
-  phone: string | null;
-  source: string | null;
-  referred_by: string | null;
-  service_interest: string[] | null;
-  notes: string | null;
-  pipeline_stage: InboundStage;
-  budget_estimate: string | null;
-  city: string | null;
-  state: string | null;
-  follow_up_at: string | null;
-  last_contacted_at: string | null;
-}
+/**
+ * The pipeline's types live in lib/pipeline.ts. Four types used to sit here,
+ * pinning every stage into a TypeScript union so the columns could not be
+ * changed without changing types. `Deal` replaces all four.
+ */
 
 export type ProjectStatus =
   | "discovery" | "design" | "build" | "review" | "delivered" | "paused" | "cancelled";
@@ -111,6 +58,20 @@ export interface Client {
   is_active: boolean;
 }
 
+/**
+ * How a project bills.
+ *
+ * one_time: `value` is the whole contract.
+ * retainer: `value` is the monthly amount, and it recurs until the project
+ * leaves an active status. The distinction matters because the old Projects
+ * header summed every project's value into one "Unpaid" figure, which counted
+ * a $2,000/mo retainer as a $2,000 debt and a paid deposit as money owed.
+ */
+export type BillingType = "one_time" | "retainer";
+
+/** Who the project is parked on. null means it is actually moving. */
+export type BlockedOn = "me" | "client";
+
 export interface Project {
   id: string;
   created_at: string;
@@ -124,5 +85,49 @@ export interface Project {
   paid: boolean;
   notes: string | null;
   deliverables: Deliverable[];
+  billing_type: BillingType;
+  /** Dollars earned but not yet billed — a milestone hit, a month delivered. */
+  to_invoice: number;
+  to_invoice_note: string | null;
+  blocked_on: BlockedOn | null;
+  blocked_note: string | null;
   client?: Client;
+}
+
+// ── Tasks ────────────────────────────────────────────────────────────────────
+
+export type TaskTier = "main" | "secondary" | "daily";
+
+/**
+ * daily    — every day
+ * weekdays — Monday to Friday
+ * weekly   — only the ISO weekday numbers listed in `weekdays` (1 = Mon .. 7 = Sun)
+ */
+export type Cadence = "daily" | "weekdays" | "weekly";
+
+export interface TaskTemplate {
+  id: string;
+  created_at: string;
+  text: string;
+  tier: TaskTier;
+  project: string | null;
+  cadence: Cadence;
+  weekdays: number[];
+  estimate_minutes: number | null;
+  sort_order: number;
+  active: boolean;
+}
+
+export interface Task {
+  id: string;
+  created_at: string;
+  text: string;
+  tier: TaskTier;
+  status: "todo" | "done";
+  project: string | null;
+  sort_order: number;
+  date: string;
+  done_at: string | null;
+  template_id: string | null;
+  estimate_minutes: number | null;
 }

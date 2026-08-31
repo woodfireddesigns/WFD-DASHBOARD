@@ -217,3 +217,76 @@ export async function sendInvoicePaid(data: {
     `),
   });
 }
+
+/**
+ * A new deal from the audit or retainer form.
+ *
+ * Deliberately separate from sendQuestionnaireStarted: those are signed-scope
+ * submissions with a price attached, these are the top of the funnel. Folding
+ * them together would have made every audit request look like a sale.
+ */
+export async function sendDealCaptured(data: {
+  name: string;
+  business: string;
+  email: string;
+  phone: string;
+  source: string;
+  headline: string;
+  detail: Record<string, string>;
+}) {
+  const rows = Object.entries(data.detail)
+    .filter(([, v]) => v && v.trim() !== "")
+    .map(([k, v]) => row(k, v))
+    .join("");
+
+  const html = card(`
+    <p style="margin:0 0 4px;color:#FF4D00;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase">${data.source}</p>
+    <h1 style="margin:0 0 6px;color:#F2EDE8;font-size:22px;font-weight:600">${data.name || "New enquiry"}</h1>
+    <p style="margin:0 0 20px;color:#9A9088;font-size:14px">${data.headline}</p>
+    <table style="width:100%;border-collapse:collapse">
+      ${row("Business", data.business || "—")}
+      ${row("Email", data.email || "—")}
+      ${row("Phone", data.phone || "—")}
+      ${rows}
+    </table>
+    <p style="margin:22px 0 0;color:#5A5248;font-size:12px">It is already a card on your Pipeline board.</p>
+  `);
+
+  return getResend().emails.send({
+    from: FROM,
+    to: TO,
+    subject: `${data.source} — ${data.business || data.name || "new enquiry"}`,
+    html,
+  });
+}
+
+/** Kickoff details arriving after signature — what unblocks the build. */
+export async function sendKickoffReceived(data: {
+  name: string;
+  business: string;
+  email: string;
+  project: string;
+  detail: Record<string, string>;
+}) {
+  const rows = Object.entries(data.detail)
+    .filter(([, v]) => v && v.trim() !== "")
+    .map(([k, v]) => row(k, v))
+    .join("");
+
+  const html = card(`
+    <p style="margin:0 0 4px;color:#FF4D00;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase">Kickoff pack</p>
+    <h1 style="margin:0 0 6px;color:#F2EDE8;font-size:22px;font-weight:600">${data.business || data.name}</h1>
+    <p style="margin:0 0 20px;color:#9A9088;font-size:14px">${data.project}</p>
+    <table style="width:100%;border-collapse:collapse">
+      ${row("From", `${data.name} · ${data.email}`)}
+      ${rows}
+    </table>
+  `);
+
+  return getResend().emails.send({
+    from: FROM,
+    to: TO,
+    subject: `Kickoff pack — ${data.business || data.name}`,
+    html,
+  });
+}

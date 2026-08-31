@@ -7,7 +7,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * Until app.woodfireddesigns.com was attached, Vercel SSO was this app's only
  * door. Deployment protection is set to all_except_custom_domains, so the custom
  * domain -- which clients must reach -- removed that door for every route,
- * including /clients, /invoices and /leads.
+ * including /clients, /invoices and /pipeline.
  *
  * The session is a real Supabase session rather than a shared password, because
  * the dashboard also needs Postgres to know who is asking: RLS grants the
@@ -29,9 +29,17 @@ const PUBLIC_PREFIXES = [
   "/login",
   "/auth",
   // Client-facing intake and quoting.
+  // /start is the router that picks between the rest, so it has to be reachable
+  // by anyone holding the link — it is the one address handed out publicly.
+  "/start",
   "/onboard",
   "/quick",
   "/design",
+  "/audit",
+  "/retainer",
+  // Sent to a client the day their contract comes back. They have no session
+  // and never will; the link itself is the credential, same as /portal.
+  "/kickoff",
   "/portal",
   "/for",
   // Called by the public contract and payment pages, which have no session.
@@ -41,13 +49,12 @@ const PUBLIC_PREFIXES = [
   "/api/intake",
   "/api/direct-intake",
   "/api/il-questionnaire",
+  "/api/deal-intake",
+  "/api/kickoff",
   // Stripe holds no session and signs its own requests; the route verifies.
   // Exempting by path rather than by header means an unsigned request gets a
   // 400 explaining itself instead of a redirect Stripe reports as a failure.
   "/api/webhooks/stripe",
-  // The open-tracking pixel in cold email. Gating it breaks every open stat and
-  // shows recipients a redirect.
-  "/api/leads/track",
 ];
 
 const CONTRACT_PAGE =

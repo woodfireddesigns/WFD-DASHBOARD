@@ -19,16 +19,16 @@ const TIER_LABELS: Record<string, string> = {
 
 const S = {
   input: {
-    fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8,
-    padding: "8px 12px", outline: "none", backgroundColor: "#fff",
-    color: "#1E1C1A", fontFamily: "Inter, sans-serif", width: "100%",
+    fontSize: 13, border: "1px solid #2A241E", borderRadius: 8,
+    padding: "8px 12px", outline: "none", backgroundColor: "#161310",
+    color: "#F2EDE8", fontFamily: "Inter, sans-serif", width: "100%",
   } as React.CSSProperties,
   select: {
-    fontSize: 13, border: "1px solid #E8E2D8", borderRadius: 8,
-    padding: "8px 12px", outline: "none", backgroundColor: "#F8F5F0",
-    color: "#1E1C1A", width: "100%",
+    fontSize: 13, border: "1px solid #2A241E", borderRadius: 8,
+    padding: "8px 12px", outline: "none", backgroundColor: "#1E1A16",
+    color: "#F2EDE8", width: "100%",
   } as React.CSSProperties,
-  label: { display: "block", fontSize: 11, fontWeight: 500, color: "#6B6560", marginBottom: 4 } as React.CSSProperties,
+  label: { display: "block", fontSize: 11, fontWeight: 500, color: "#C4B8AE", marginBottom: 4 } as React.CSSProperties,
 };
 
 // ── Add client modal ──────────────────────────────────────────────────────────
@@ -68,11 +68,11 @@ function AddClientModal({ onClose, onAdded }: { onClose: () => void; onAdded: ()
   });
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(30,28,26,0.55)", backdropFilter: "blur(4px)" }}>
-      <div style={{ backgroundColor: "#fff", borderRadius: 14, boxShadow: "0 20px 60px rgba(0,0,0,0.14)", width: "100%", maxWidth: 440, margin: "0 16px", padding: 24, maxHeight: "90vh", overflowY: "auto" }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(6,5,4,0.72)", backdropFilter: "blur(4px)" }}>
+      <div style={{ backgroundColor: "#161310", borderRadius: 14, boxShadow: "0 20px 60px rgba(0,0,0,0.14)", width: "100%", maxWidth: 440, margin: "0 16px", padding: 24, maxHeight: "90vh", overflowY: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 className="font-display" style={{ fontSize: 18, color: "#1E1C1A" }}>New Client</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#A09890" }}><X size={16} /></button>
+          <h2 className="font-display" style={{ fontSize: 18, color: "#F2EDE8" }}>New Client</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#8F827A" }}><X size={16} /></button>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div><label style={S.label}>Business Name *</label><input {...f("name")} placeholder="e.g. Ridge Roofing" style={S.input} /></div>
@@ -143,9 +143,9 @@ function ClientRow({ client, projectCount }: { client: Client; projectCount: num
         style={{
           display: "flex", alignItems: "center", gap: 14,
           padding: "13px 18px",
-          backgroundColor: "#fff",
+          backgroundColor: "#161310",
           border: "1px solid",
-          borderColor: hov ? "#D9D1C3" : "#E8E2D8",
+          borderColor: hov ? "#3A322A" : "#2A241E",
           borderRadius: 10,
           cursor: "pointer",
           boxShadow: hov ? "0 2px 8px rgba(0,0,0,0.05)" : "none",
@@ -155,7 +155,7 @@ function ClientRow({ client, projectCount }: { client: Client; projectCount: num
         {/* Avatar */}
         <div style={{
           width: 34, height: 34, borderRadius: 99,
-          backgroundColor: "#1E1C1A",
+          background: "linear-gradient(135deg, #FF6B2B, #E85A1A)",
           color: "#fff", fontSize: 13, fontWeight: 700,
           display: "flex", alignItems: "center", justifyContent: "center",
           flexShrink: 0,
@@ -165,15 +165,15 @@ function ClientRow({ client, projectCount }: { client: Client; projectCount: num
 
         {/* Name + meta */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 13.5, fontWeight: 600, color: hov ? "#FF6B2B" : "#1E1C1A", transition: "color 0.15s", lineHeight: 1.3 }}>
+          <p style={{ fontSize: 13.5, fontWeight: 600, color: hov ? "#FF6B2B" : "#F2EDE8", transition: "color 0.15s", lineHeight: 1.3 }}>
             {client.name}
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
             {client.contact_name && (
-              <span style={{ fontSize: 11.5, color: "#6B6560" }}>{client.contact_name}</span>
+              <span style={{ fontSize: 11.5, color: "#C4B8AE" }}>{client.contact_name}</span>
             )}
             {client.source && (
-              <span style={{ fontSize: 10.5, fontFamily: "JetBrains Mono, monospace", color: "#A09890" }}>
+              <span style={{ fontSize: 10.5, fontFamily: "JetBrains Mono, monospace", color: "#8F827A" }}>
                 {SOURCE_LABELS[client.source] ?? client.source}
               </span>
             )}
@@ -182,22 +182,22 @@ function ClientRow({ client, projectCount }: { client: Client; projectCount: num
 
         {/* Tier */}
         {client.tier && (
-          <span style={{ fontSize: 11, color: "#6B6560", backgroundColor: "#F0EBE1", padding: "3px 9px", borderRadius: 99, flexShrink: 0, display: "none" }}
+          <span style={{ fontSize: 11, color: "#C4B8AE", backgroundColor: "#1E1A16", padding: "3px 9px", borderRadius: 99, flexShrink: 0, display: "none" }}
             className="md-show">
             {TIER_LABELS[client.tier] ?? client.tier}
           </span>
         )}
 
         {/* Projects */}
-        <span style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: "#A09890", flexShrink: 0, minWidth: 64, textAlign: "right" }}>
+        <span style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: "#8F827A", flexShrink: 0, minWidth: 64, textAlign: "right" }}>
           {projectCount} {projectCount === 1 ? "project" : "projects"}
         </span>
 
         {/* MRR badge */}
         <span style={{
           fontSize: 10.5, fontWeight: 600, padding: "3px 10px", borderRadius: 99, flexShrink: 0,
-          backgroundColor: mrr === "active" ? "#ECFBF0" : mrr === "churned" ? "#FEE8E8" : "#F0EBE1",
-          color: mrr === "active" ? "#1E7A3C" : mrr === "churned" ? "#B83232" : "#A09890",
+          backgroundColor: mrr === "active" ? "#12251A" : mrr === "churned" ? "#2C1614" : "#1E1A16",
+          color: mrr === "active" ? "#3FB86B" : mrr === "churned" ? "#E2564A" : "#8F827A",
         }}>
           {mrr === "active"
             ? `MRR${client.mrr_amount ? ` · $${client.mrr_amount}` : ""}`
@@ -205,7 +205,7 @@ function ClientRow({ client, projectCount }: { client: Client; projectCount: num
             : "Project"}
         </span>
 
-        <ChevronRight size={14} color={hov ? "#FF6B2B" : "#C8C0B8"} style={{ flexShrink: 0, transition: "color 0.15s" }} />
+        <ChevronRight size={14} color={hov ? "#FF6B2B" : "#8F827A"} style={{ flexShrink: 0, transition: "color 0.15s" }} />
       </div>
     </Link>
   );
@@ -250,7 +250,7 @@ export default function ClientsPage() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", paddingTop: 80, color: "#A09890" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", paddingTop: 80, color: "#8F827A" }}>
         <Loader2 size={16} className="animate-spin" /><span style={{ fontSize: 13 }}>Loading…</span>
       </div>
     );
@@ -261,12 +261,12 @@ export default function ClientsPage() {
       {/* Stats */}
       <div style={{ display: "flex", gap: 12 }}>
         {[
-          { label: "Total Clients", value: clients.length,          color: "#1E1C1A" },
+          { label: "Total Clients", value: clients.length,          color: "#F2EDE8" },
           { label: "On Retainer",   value: mrrCount,                color: "#FF6B2B" },
-          { label: "Monthly MRR",   value: `$${mrrTotal}/mo`,       color: "#1E7A3C" },
+          { label: "Monthly MRR",   value: `$${mrrTotal}/mo`,       color: "#3FB86B" },
         ].map(({ label, value, color }) => (
-          <div key={label} style={{ flex: 1, backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 10, padding: "14px 20px" }}>
-            <p style={{ fontSize: 10.5, color: "#A09890", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</p>
+          <div key={label} style={{ flex: 1, backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 10, padding: "14px 20px" }}>
+            <p style={{ fontSize: 10.5, color: "#8F827A", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</p>
             <p className="font-display" style={{ fontSize: 26, color }}>{value}</p>
           </div>
         ))}
@@ -275,19 +275,19 @@ export default function ClientsPage() {
       {/* Controls */}
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <div style={{ position: "relative", flex: 1, maxWidth: 280 }}>
-          <Search size={13} color="#A09890" style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)" }} />
+          <Search size={13} color="#8F827A" style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)" }} />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients…"
-            style={{ ...S.input, paddingLeft: 32, border: "1px solid #E8E2D8" }} />
+            style={{ ...S.input, paddingLeft: 32, border: "1px solid #2A241E" }} />
         </div>
 
-        <div style={{ display: "flex", backgroundColor: "#fff", border: "1px solid #E8E2D8", borderRadius: 8, padding: 3, gap: 2 }}>
+        <div style={{ display: "flex", backgroundColor: "#161310", border: "1px solid #2A241E", borderRadius: 8, padding: 3, gap: 2 }}>
           {(["all", "active", "none"] as const).map((f) => (
             <button key={f} onClick={() => setFilterMrr(f)}
               style={{
                 padding: "5px 13px", borderRadius: 6, border: "none", cursor: "pointer",
                 fontSize: 12, fontWeight: 500, transition: "all 0.15s",
-                backgroundColor: filterMrr === f ? "#1E1C1A" : "transparent",
-                color: filterMrr === f ? "#fff" : "#6B6560",
+                backgroundColor: filterMrr === f ? "#F2EDE8" : "transparent",
+                color: filterMrr === f ? "#fff" : "#C4B8AE",
               }}>
               {f === "all" ? "All" : f === "active" ? "Retainer" : "Project"}
             </button>
@@ -303,7 +303,7 @@ export default function ClientsPage() {
       {/* List */}
       <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
         {filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 0", fontSize: 13, color: "#A09890" }}>
+          <div style={{ textAlign: "center", padding: "60px 0", fontSize: 13, color: "#8F827A" }}>
             {search ? "No clients match." : "No clients yet."}
           </div>
         ) : (

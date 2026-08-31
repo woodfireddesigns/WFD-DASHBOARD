@@ -4,15 +4,14 @@ import { usePathname } from "next/navigation";
 
 const PAGE_META: Record<string, { title: string; sub: string }> = {
   "/":           { title: "The Forge",      sub: "Your daily command center" },
-  "/tasks":      { title: "Tasks",          sub: "What gets done today" },
-  "/pipeline":   { title: "Pipeline",       sub: "Leads in motion" },
+  "/tasks":      { title: "Tasks",          sub: "Today, and the weeks ahead" },
+  "/pipeline":   { title: "Pipeline",       sub: "Deals in motion" },
   "/projects":   { title: "Projects",       sub: "Active work" },
   "/clients":    { title: "Clients",        sub: "Relationships" },
   "/invoices":   { title: "Invoices",       sub: "Money in motion" },
   "/onboarding": { title: "Onboarding",     sub: "Client sequences" },
   "/proposal":   { title: "Proposals",      sub: "Live proposal builder" },
-  "/onboard":    { title: "UX Intake",      sub: "Web project questionnaire" },
-  "/design":     { title: "Design Intake",  sub: "Brand & creative questionnaire" },
+  "/intake":     { title: "Intake",         sub: "Submissions, and every form you can send" },
 };
 
 export default function Topbar() {
@@ -35,9 +34,9 @@ export default function Topbar() {
         }}>
           {meta.title}
         </h1>
-        {meta.sub && <p style={{ fontSize: 11.5, color: "#5A4E46", marginTop: 2 }}>{meta.sub}</p>}
+        {meta.sub && <p style={{ fontSize: 11.5, color: "#8F827A", marginTop: 2 }}>{meta.sub}</p>}
       </div>
-      <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10.5, color: "#3D342C", letterSpacing: "0.06em" }}>
+      <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10.5, color: "#8F827A", letterSpacing: "0.06em" }}>
         {dateStr}
       </p>
     </header>
